@@ -1,0 +1,3196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>一点点暖味机</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background-color: #000;
+            border-radius: 40px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-bar {
+            height: 44px;
+            background-color: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 14px;
+        }
+        
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status-icons span {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .signal-icon {
+            transform: rotate(90deg);
+            display: inline-block;
+        }
+        
+        .battery-icon {
+            position: relative;
+            width: 20px;
+            height: 10px;
+            border: 1px solid currentColor;
+            border-radius: 2px;
+            display: inline-block;
+        }
+        
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            right: -3px;
+            width: 2px;
+            height: 4px;
+            background-color: currentColor;
+            border-radius: 0 1px 1px 0;
+        }
+        
+        .home-screen {
+            height: calc(100% - 44px - 88px);
+            background-color: #1c1c1e;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .app-icon:hover {
+            transform: scale(1.05);
+        }
+        
+        .app-icon img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .app-icon span {
+            font-size: 12px;
+            color: #fff;
+            text-align: center;
+        }
+        
+        .dock {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 88px;
+            background-color: rgba(30, 30, 32, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dock .app-icon img {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .app-container {
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            bottom: 88px;
+            background-color: #1c1c1e;
+            display: none;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .app-container.active {
+            transform: translateX(0);
+        }
+        
+        .app-header {
+            height: 44px;
+            background-color: #2c2c2e;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .app-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .app-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .back-button {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        
+        /* 聊天应用样式 */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 10px 20px;
+            background-color: #2c2c2e;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: messageFadeIn 0.3s ease forwards;
+        }
+        
+        @keyframes messageFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background-color: #3a3a3c;
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .ai-message {
+            align-self: flex-start;
+            background-color: #3a3a3c;
+            color: #fff;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 10px 20px;
+            background-color: #2c2c2e;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            background-color: #3a3a3c;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 16px;
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        .chat-input button {
+            background-color: #3a3a3c;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-left: 10px;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        /* 暖味应用导航 */
+        .chat-main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .tab-content {
+            display: none;
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-nav {
+            height: 50px;
+            background-color: #2c2c2e;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 15px 0;
+            color: #8e8e93;
+        }
+        
+        .nav-item.active {
+            color: #8e8e93;
+        }
+        
+        .nav-item p {
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        /* 聊天列表样式 */
+        .chat-list-container {
+            padding: 0;
+        }
+        
+        .chat-list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        
+        .chat-list-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 15px;
+        }
+        
+        .chat-list-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .chat-list-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .chat-list-name {
+            font-size: 16px;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .chat-list-message {
+            font-size: 14px;
+            color: #8e8e93;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .chat-list-time {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-left: 10px;
+        }
+        
+        /* 通讯录样式 */
+        .contact-list-container {
+            padding: 0;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        
+        .contact-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 15px;
+        }
+        
+        .contact-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .contact-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .contact-name {
+            font-size: 16px;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .contact-desc {
+            font-size: 14px;
+            color: #8e8e93;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .contact-arrow {
+            font-size: 20px;
+            color: #8e8e93;
+        }
+        
+        /* 联系人详情样式 */
+        .contact-detail-content {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .contact-detail-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 20px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .contact-detail-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-edit-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-size: 12px;
+            padding: 5px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .contact-detail-avatar:hover .avatar-edit-overlay {
+            opacity: 1;
+        }
+        
+        .contact-signature {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        
+        .contact-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .chat-btn {
+            background-color: #3a3a3c;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .moments-btn {
+            background-color: #3a3a3c;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .contact-info-section {
+            text-align: left;
+            margin-top: 20px;
+        }
+        
+        .contact-info-section h4 {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-bottom: 10px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        
+        /* 聊天头部样式 */
+        .chat-header {
+            height: 44px;
+            background-color: #2c2c2e;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        /* 主页样式 */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 8px solid #f0f0f0;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 20px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .profile-avatar:hover .avatar-upload-overlay {
+            opacity: 1;
+        }
+        
+        .avatar-upload-overlay span {
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        .profile-info h3 {
+            font-size: 20px;
+            margin: 0 0 5px 0;
+        }
+        
+        .profile-info p {
+            font-size: 14px;
+            color: #8e8e93;
+            margin: 0 0 5px 0;
+        }
+        
+        .profile-signature {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .function-list {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .function-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .function-item span:first-child {
+            font-size: 20px;
+            margin-right: 15px;
+            filter: grayscale(100%);
+        }
+        
+        .function-item p {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .arrow {
+            font-size: 16px;
+            color: #8e8e93;
+        }
+        
+        .save-section {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .save-section button {
+            background-color: #3a3a3c;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .data-management {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .data-management button {
+            background-color: #3a3a3c;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* 暖味圈样式 */
+        .moments-container {
+            padding: 20px;
+        }
+        
+        .moment-item {
+            margin-bottom: 30px;
+        }
+        
+        .moment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .moment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+        
+        .moment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .moment-info h4 {
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .moment-info p {
+            font-size: 12px;
+            color: #8e8e93;
+            margin: 2px 0 0 0;
+        }
+        
+        .moment-content {
+            margin-bottom: 10px;
+        }
+        
+        .moment-content p {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .moment-content img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        
+        .moment-actions {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .moment-actions span {
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .empty-moments {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            color: #8e8e93;
+            font-size: 16px;
+        }
+        
+        /* 主页样式 */
+        .home-container {
+            padding: 20px;
+        }
+        
+        .home-section {
+            margin-bottom: 30px;
+        }
+        
+        .home-section h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .status-card {
+            background-color: #2c2c2e;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .status-card p {
+            margin: 0;
+        }
+        
+        .function-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        
+        .function-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .function-item span {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .function-item p {
+            font-size: 12px;
+            margin: 0;
+        }
+        
+        /* 设置应用样式 */
+        .settings-section {
+            margin-bottom: 30px;
+        }
+        
+        .settings-section h3 {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-bottom: 10px;
+            padding-left: 20px;
+        }
+        
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #2c2c2e;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .settings-item input {
+            background-color: #3a3a3c;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            width: 200px;
+        }
+        
+        .settings-item button {
+            background-color: #3a3a3c;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .settings-item select {
+            background-color: #3a3a3c;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            width: 200px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3a3a3c;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #8e8e93;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* 美化应用样式 */
+        .wallpaper-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .wallpaper-option {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .wallpaper-option:hover {
+            border-color: #007aff;
+        }
+        
+        .upload-wallpaper {
+            margin-top: 20px;
+        }
+        
+        .upload-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3a3a3c;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .upload-button:hover {
+            background-color: #4a4a4c;
+        }
+        
+        .icon-upload-section {
+            margin-top: 20px;
+        }
+        
+        .icon-option {
+            margin-bottom: 25px;
+        }
+        
+        .icon-option h4 {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #fff;
+        }
+        
+        .app-icons-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .app-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background-color: #3a3a3c;
+            border-radius: 8px;
+        }
+        
+        .app-icon-item span {
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .mini-upload-btn {
+            font-size: 11px;
+            padding: 4px 10px;
+            background-color: #5a5a5c;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .mini-upload-btn:hover {
+            background-color: #6a6a6c;
+        }
+        
+        /* 个人应用样式 */
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #3a3a3c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .profile-info {
+            text-align: center;
+        }
+        
+        .profile-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .profile-info p {
+            font-size: 14px;
+            color: #8e8e93;
+        }
+        
+        /* 购物应用样式 */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .product-item {
+            background-color: #2c2c2e;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .product-item img {
+            width: 100%;
+            height: 120px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+        
+        .product-item h4 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .product-item p {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8e8e93;
+        }
+        
+        .product-item button {
+            background-color: #3a3a3c;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: #fff;
+            font-size: 14px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        /* 世界书和论坛应用样式 */
+        .content-list {
+            margin-top: 20px;
+        }
+        
+        .content-item {
+            background-color: #2c2c2e;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .content-item h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .content-item p {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-bottom: 10px;
+        }
+        
+        .content-item .meta {
+            font-size: 12px;
+            color: #6e6e73;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div>9:41</div>
+            <div class="status-icons">
+                <span class="signal-icon">▧</span>
+                <span class="wifi-icon">◉</span>
+                <span class="battery-icon"></span>
+            </div>
+        </div>
+        
+        <!-- 主屏幕 -->
+        <div class="home-screen" id="home-screen">
+            <div class="app-grid">
+                <div class="app-icon" data-app="settings">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=settings%20app%20icon%20ios%20style&image_size=square" alt="设置">
+                    <span>设置</span>
+                </div>
+                <div class="app-icon" data-app="chat">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=chat%20app%20icon%20ios%20style&image_size=square" alt="暖味">
+                    <span>暖味</span>
+                </div>
+                <div class="app-icon" data-app="beautify">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautify%20app%20icon%20ios%20style&image_size=square" alt="美化">
+                    <span>美化</span>
+                </div>
+                <div class="app-icon" data-app="worldbook">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=world%20book%20app%20icon%20ios%20style&image_size=square" alt="世界书">
+                    <span>世界书</span>
+                </div>
+                <div class="app-icon" data-app="forum">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=forum%20app%20icon%20ios%20style&image_size=square" alt="论坛">
+                    <span>论坛</span>
+                </div>
+                <div class="app-icon" data-app="profile">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=profile%20app%20icon%20ios%20style&image_size=square" alt="个人">
+                    <span>个人</span>
+                </div>
+                <div class="app-icon" data-app="shopping">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=shopping%20app%20icon%20ios%20style&image_size=square" alt="购物">
+                    <span>购物</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部dock -->
+        <div class="dock">
+            <div class="app-icon" data-app="chat">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=chat%20app%20icon%20ios%20style&image_size=square" alt="暖味">
+            </div>
+            <div class="app-icon" data-app="shopping">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=shopping%20app%20icon%20ios%20style&image_size=square" alt="购物">
+            </div>
+            <div class="app-icon" data-app="profile">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=profile%20app%20icon%20ios%20style&image_size=square" alt="个人">
+            </div>
+        </div>
+        
+        <!-- 设置应用 -->
+        <div class="app-container" id="settings-app">
+            <div class="app-header">
+                <div class="back-button" onclick="backToHome()">←</div>
+                <h2>设置</h2>
+            </div>
+            <div class="app-content">
+                <div class="settings-section">
+                    <h3>API设置</h3>
+                    <div class="settings-item">
+                        <span>API密钥</span>
+                        <input type="password" id="api-key" placeholder="输入API密钥">
+                    </div>
+                    <div class="settings-item">
+                        <span>API地址</span>
+                        <input type="text" id="api-url" value="https://api.openai.com/v1/chat/completions">
+                    </div>
+                    <div class="settings-item">
+                        <span>拉取模型</span>
+                        <button id="fetch-models" onclick="fetchModels()">拉取</button>
+                    </div>
+                    <div class="settings-item">
+                        <span>模型</span>
+                        <select id="api-model">
+                            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <span>保存设置</span>
+                        <button onclick="saveSettings()">保存</button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>应用设置</h3>
+                    <div class="settings-item">
+                        <span>通知</span>
+                        <span>开启</span>
+                    </div>
+                    <div class="settings-item">
+                        <span>深色模式</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <span>数据管理</span>
+                        <div class="data-management">
+                            <button onclick="exportData()">导出</button>
+                            <button onclick="importData()">导入</button>
+                            <button onclick="clearData()">清空</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 暖味聊天应用 -->
+        <div class="app-container" id="chat-app">
+            <!-- 内容区域 -->
+            <div class="chat-main-content">
+                <!-- 列表板块（通讯录） -->
+                <div id="list-tab" class="tab-content active">
+                    <div class="chat-header">
+                        <div class="back-button" onclick="backToHome()">←</div>
+                        <h3>列表</h3>
+                        <div class="add-contact-btn" onclick="showAddContactModal()" style="font-size: 24px; cursor: pointer;">+</div>
+                    </div>
+                    <div class="contact-list-container" id="contact-list-container">
+                    </div>
+                </div>
+                
+                <!-- 聊天界面 -->
+                <div id="chat-tab" class="tab-content">
+                    <div class="chat-header">
+                        <div class="back-button" onclick="backToHome()">←</div>
+                        <h3>聊天</h3>
+                    </div>
+                    <div class="chat-list-container" id="chat-list-container">
+                    </div>
+                </div>
+                
+                <!-- 添加联系人弹窗 -->
+                <div id="add-contact-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div class="modal-content" style="background-color: #2c2c2e; padding: 20px; border-radius: 12px; width: 80%; max-width: 300px;">
+                        <h3 style="margin-top: 0; text-align: center; color: #fff;">创建人物</h3>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #fff;">真实姓名 *</label>
+                            <input type="text" id="contact-real-name" style="width: 100%; padding: 10px; border-radius: 8px; border: none; background-color: #3a3a3c; color: #fff;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #fff;">网名 *</label>
+                            <input type="text" id="contact-nickname" style="width: 100%; padding: 10px; border-radius: 8px; border: none; background-color: #3a3a3c; color: #fff;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #fff;">备注（选填）</label>
+                            <input type="text" id="contact-remark" style="width: 100%; padding: 10px; border-radius: 8px; border: none; background-color: #3a3a3c; color: #fff;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #fff;">个性签名（选填）</label>
+                            <input type="text" id="contact-bio" style="width: 100%; padding: 10px; border-radius: 8px; border: none; background-color: #3a3a3c; color: #fff;" placeholder="这个人很暖...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #fff;">头像</label>
+                            <label for="contact-avatar" class="upload-button" style="display: inline-block; padding: 8px 16px; background-color: #3a3a3c; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px;">上传头像</label>
+                            <input type="file" id="contact-avatar" accept="image/*" style="display: none;" onchange="previewContactAvatar(event)">
+                            <div id="avatar-preview" style="margin-top: 10px; display: none;">
+                                <img id="avatar-preview-img" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="closeAddContactModal()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background-color: #3a3a3c; color: #fff; cursor: pointer;">取消</button>
+                            <button onclick="createContact()" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background-color: #007aff; color: #fff; cursor: pointer;">创建</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 联系人详情页面 -->
+                <div id="contact-detail-tab" class="tab-content">
+                    <div class="chat-header">
+                        <div class="back-button" onclick="switchTab('list-tab')">←</div>
+                        <h3 id="contact-detail-title"></h3>
+                    </div>
+                    <div class="contact-detail-content">
+                        <div class="contact-detail-avatar" onclick="editContactAvatar()">
+                            <img id="contact-detail-avatar-img" src="" alt="">
+                            <div class="avatar-edit-overlay">编辑</div>
+                        </div>
+                        <input type="file" id="contact-avatar-edit" accept="image/*" style="display: none;" onchange="updateContactAvatar(event)">
+                        <h2 id="contact-detail-name"></h2>
+                        <p class="contact-signature" id="contact-detail-bio" onclick="editContactBio()"></p>
+                        <div class="contact-actions">
+                            <button class="action-btn chat-btn" id="contact-chat-btn" onclick="openChatFromDetail()">发消息</button>
+                            <button class="action-btn moments-btn">查看暖味圈</button>
+                        </div>
+                        <div class="contact-info-section">
+                            <h4>基本信息</h4>
+                            <div class="info-item" onclick="editContactRemark()">
+                                <span>备注：</span>
+                                <span id="contact-detail-remark">暂无备注</span>
+                            </div>
+                            <div class="info-item">
+                                <span>网名：</span>
+                                <span id="contact-detail-nickname"></span>
+                            </div>
+                            <div class="info-item">
+                                <span>真实姓名：</span>
+                                <span id="contact-detail-realname"></span>
+                            </div>
+                        </div>
+                        <div class="contact-info-section">
+                            <h4>关联世界书 <span onclick="showWorldbookSelector()" style="cursor: pointer; font-size: 14px; color: #007aff;">+添加</span></h4>
+                            <div id="worldbook-tags" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0;">
+                            </div>
+                        </div>
+                        <div style="margin-top: 30px; padding: 0 20px;">
+                            <button class="action-btn delete-btn" onclick="deleteContact()" style="width: 100%; background-color: #ff3b30; color: #fff; padding: 12px; border-radius: 8px; border: none; cursor: pointer;">删除联系人</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 具体聊天界面 -->
+                <div id="chat-message-tab" class="tab-content">
+                    <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center; height: 44px; background-color: #2c2c2e; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 0 20px;">
+                        <div class="back-button" onclick="switchTab('chat-tab')">←</div>
+                        <h3 id="chat-title" style="margin: 0;"></h3>
+                        <div class="menu-button" onclick="toggleChatMenu()" style="font-size: 24px; color: #fff; cursor: pointer;">⋯</div>
+                    </div>
+                    <!-- 聊天菜单 -->
+                    <div class="chat-menu" id="chat-menu" style="display: none; position: absolute; top: 44px; right: 10px; background-color: #2c2c2e; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); z-index: 100;">
+                        <div class="menu-item" onclick="clearChatHistory()" style="padding: 10px 20px; cursor: pointer; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">清空聊天记录</div>
+                    </div>
+                    <div class="chat-container" style="flex: 1; position: relative;">
+                        <div class="chat-messages" id="chat-messages" style="position: absolute; top: 0; left: 0; right: 0; bottom: 60px; overflow-y: auto; padding: 20px; gap: 15px; display: flex; flex-direction: column;">
+                        </div>
+                        <div class="chat-input" style="position: absolute; bottom: 0; left: 0; right: 0; display: flex; padding: 10px 20px; background-color: #2c2c2e; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            <input type="text" id="chat-input" placeholder="输入消息..." style="flex: 1; background-color: #3a3a3c; border: none; border-radius: 20px; padding: 10px 16px; color: #fff; font-size: 16px;">
+                            <button onclick="sendMessage()" style="background-color: #3a3a3c; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; width: 40px; height: 40px; margin-left: 10px; color: #fff; font-size: 18px; cursor: pointer;">→</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 暖味圈界面 -->
+                <div id="moments-tab" class="tab-content">
+                    <div class="chat-header">
+                        <div class="back-button" onclick="switchTab('list-tab')">←</div>
+                        <h3>暖味圈</h3>
+                    </div>
+                    <div class="moments-container">
+                        <div class="empty-moments">
+                            <p>暂无暖味圈动态</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 主页界面 -->
+                <div id="home-tab" class="tab-content">
+                    <div class="chat-header">
+                        <div class="back-button" onclick="switchTab('list-tab')">←</div>
+                        <h3>主页</h3>
+                    </div>
+                    <div class="home-container">
+                        <div class="profile-section">
+                            <div class="profile-avatar">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23ffffff'/%3E%3C/svg%3E" alt="头像" id="profile-avatar">
+                                <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                                <div class="avatar-upload-overlay" onclick="document.getElementById('avatar-upload').click()">
+                                    <span>更换头像</span>
+                                </div>
+                            </div>
+                            <div class="profile-info">
+                                <h3 contenteditable="true" id="username">用户名</h3>
+                                <p>微信号：wxid_123456</p>
+                                <p class="profile-signature" contenteditable="true" id="signature">今天心情不错！</p>
+                            </div>
+                        </div>
+                        <div class="save-section">
+                            <button onclick="saveProfile()">保存</button>
+                        </div>
+                        <div class="home-section">
+                            <h3>我的功能</h3>
+                            <div class="function-list">
+                                <div class="function-item">
+                                    <p>钱包</p>
+                                    <span class="arrow">›</span>
+                                </div>
+                                <div class="function-item">
+                                    <p>相册</p>
+                                    <span class="arrow">›</span>
+                                </div>
+                                <div class="function-item">
+                                    <p>收藏</p>
+                                    <span class="arrow">›</span>
+                                </div>
+                                <div class="function-item">
+                                    <p>卡包</p>
+                                    <span class="arrow">›</span>
+                                </div>
+                                <div class="function-item">
+                                    <p>设置</p>
+                                    <span class="arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 底部导航栏 -->
+            <div class="chat-nav">
+                <div class="nav-item" onclick="switchTab('chat-tab')">
+                    <p>聊天</p>
+                </div>
+                <div class="nav-item active" onclick="switchTab('list-tab')">
+                    <p>列表</p>
+                </div>
+                <div class="nav-item" onclick="switchTab('moments-tab')">
+                    <p>暖味圈</p>
+                </div>
+                <div class="nav-item" onclick="switchTab('home-tab')">
+                    <p>主页</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 美化应用 -->
+        <div class="app-container" id="beautify-app">
+            <div class="app-header">
+                <div class="back-button" onclick="backToHome()">←</div>
+                <h2>美化</h2>
+            </div>
+            <div class="app-content">
+                <h3>壁纸设置</h3>
+                <div class="wallpaper-options">
+                    <div class="wallpaper-option" onclick="setWallpaper('white')">
+                        <div style="width: 100%; height: 100%; background-color: #ffffff;"></div>
+                    </div>
+                    <div class="wallpaper-option" onclick="setWallpaper('black')">
+                        <div style="width: 100%; height: 100%; background-color: #000000;"></div>
+                    </div>
+                </div>
+                <div class="upload-wallpaper">
+                    <label for="wallpaper-upload" class="upload-button">上传本地壁纸</label>
+                    <input type="file" id="wallpaper-upload" accept="image/*" style="display: none;" onchange="uploadWallpaper(event)">
+                </div>
+                <h3 style="margin-top: 30px;">图标设置</h3>
+                <div class="icon-upload-section">
+                    <div class="icon-option">
+                        <h4>单独设置</h4>
+                        <div class="app-icons-grid">
+                            <div class="app-icon-item">
+                                <span>设置</span>
+                                <label for="icon-settings" class="mini-upload-btn">上传</label>
+                                <input type="file" id="icon-settings" accept="image/*" style="display: none;" onchange="uploadAppIcon(event, 'settings')">
+                            </div>
+                            <div class="app-icon-item">
+                                <span>暖味</span>
+                                <label for="icon-chat" class="mini-upload-btn">上传</label>
+                                <input type="file" id="icon-chat" accept="image/*" style="display: none;" onchange="uploadAppIcon(event, 'chat')">
+                            </div>
+                            <div class="app-icon-item">
+                                <span>美化</span>
+                                <label for="icon-beautify" class="mini-upload-btn">上传</label>
+                                <input type="file" id="icon-beautify" accept="image/*" style="display: none;" onchange="uploadAppIcon(event, 'beautify')">
+                            </div>
+                            <div class="app-icon-item">
+                                <span>世界书</span>
+                                <label for="icon-worldbook" class="mini-upload-btn">上传</label>
+                                <input type="file" id="icon-worldbook" accept="image/*" style="display: none;" onchange="uploadAppIcon(event, 'worldbook')">
+                            </div>
+                            <div class="app-icon-item">
+                                <span>论坛</span>
+                                <label for="icon-forum" class="mini-upload-btn">上传</label>
+                                <input type="file" id="icon-forum" accept="image/*" style="display: none;" onchange="uploadAppIcon(event, 'forum')">
+                            </div>
+                            <div class="app-icon-item">
+                                <span>个人</span>
+                                <label for="icon-profile" class="mini-upload-btn">上传</label>
+                                <input type="file" id="icon-profile" accept="image/*" style="display: none;" onchange="uploadAppIcon(event, 'profile')">
+                            </div>
+                            <div class="app-icon-item">
+                                <span>购物</span>
+                                <label for="icon-shopping" class="mini-upload-btn">上传</label>
+                                <input type="file" id="icon-shopping" accept="image/*" style="display: none;" onchange="uploadAppIcon(event, 'shopping')">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 世界书应用 -->
+        <div class="app-container" id="worldbook-app">
+            <div class="app-header">
+                <div class="back-button" onclick="backToHome()">←</div>
+                <h2>世界书</h2>
+                <div class="add-btn" onclick="showAddWorldbookModal()" style="font-size: 24px; cursor: pointer; margin-left: auto;">+</div>
+            </div>
+            <div class="app-content">
+                <div class="content-list" id="worldbook-list">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 添加世界书弹窗 -->
+        <div id="add-worldbook-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="modal-content" style="background-color: #2c2c2e; padding: 20px; border-radius: 12px; width: 80%; max-width: 300px;">
+                <h3 style="margin-top: 0; text-align: center; color: #fff;">创建世界书</h3>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #fff;">标题 *</label>
+                    <input type="text" id="worldbook-title" style="width: 100%; padding: 10px; border-radius: 8px; border: none; background-color: #1c1c1e; color: #fff; box-sizing: border-box;">
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-size: 14px; color: #fff;">内容 *</label>
+                    <textarea id="worldbook-content" rows="5" style="width: 100%; padding: 10px; border-radius: 8px; border: none; background-color: #1c1c1e; color: #fff; box-sizing: border-box; resize: none;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="closeAddWorldbookModal()" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background-color: #48484a; color: #fff; cursor: pointer;">取消</button>
+                    <button onclick="saveWorldbook()" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background-color: #007aff; color: #fff; cursor: pointer;">创建</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 论坛应用 -->
+        <div class="app-container" id="forum-app">
+            <div class="app-header">
+                <div class="back-button" onclick="backToHome()">←</div>
+                <h2>论坛</h2>
+            </div>
+            <div class="app-content">
+                <div class="content-list">
+                    <div class="content-item">
+                        <h4>每日话题</h4>
+                        <p>今天你过得怎么样？</p>
+                        <div class="meta">100人参与</div>
+                    </div>
+                    <div class="content-item">
+                        <h4>技术讨论</h4>
+                        <p>AI的未来发展趋势</p>
+                        <div class="meta">50人参与</div>
+                    </div>
+                    <div class="content-item">
+                        <h4>生活分享</h4>
+                        <p>分享你的生活小技巧</p>
+                        <div class="meta">80人参与</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 个人应用 -->
+        <div class="app-container" id="profile-app">
+            <div class="app-header">
+                <div class="back-button" onclick="backToHome()">←</div>
+                <h2>个人</h2>
+            </div>
+            <div class="app-content">
+                <div class="profile-section">
+                    <div class="profile-avatar">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20portrait&image_size=square" alt="头像">
+                    </div>
+                    <div class="profile-info">
+                        <h3>用户名</h3>
+                        <p>user@example.com</p>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>个人信息</h3>
+                    <div class="settings-item">
+                        <span>昵称</span>
+                        <input type="text" value="用户名">
+                    </div>
+                    <div class="settings-item">
+                        <span>性别</span>
+                        <span>保密</span>
+                    </div>
+                    <div class="settings-item">
+                        <span>生日</span>
+                        <span>2000-01-01</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 购物应用 -->
+        <div class="app-container" id="shopping-app">
+            <div class="app-header">
+                <div class="back-button" onclick="backToHome()">←</div>
+                <h2>购物</h2>
+            </div>
+            <div class="app-content">
+                <h3>推荐商品</h3>
+                <div class="product-grid">
+                    <div class="product-item">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=gift%20box&image_size=square" alt="礼物">
+                        <h4>精美礼物</h4>
+                        <p>¥99</p>
+                        <button>让AI买单</button>
+                    </div>
+                    <div class="product-item">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=flower%20bouquet&image_size=square" alt="花束">
+                        <h4>浪漫花束</h4>
+                        <p>¥199</p>
+                        <button>让AI买单</button>
+                    </div>
+                    <div class="product-item">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=chocolate%20box&image_size=square" alt="巧克力">
+                        <h4>巧克力礼盒</h4>
+                        <p>¥129</p>
+                        <button>让AI买单</button>
+                    </div>
+                    <div class="product-item">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=jewelry&image_size=square" alt="首饰">
+                        <h4>精美首饰</h4>
+                        <p>¥299</p>
+                        <button>让AI买单</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 应用切换功能
+        function openApp(appName) {
+            // 隐藏所有应用
+            document.querySelectorAll('.app-container').forEach(app => {
+                app.style.display = 'flex';
+                app.classList.remove('active');
+            });
+            // 隐藏主屏幕
+            document.getElementById('home-screen').style.display = 'none';
+            // 隐藏dock栏
+            document.querySelector('.dock').style.display = 'none';
+            // 显示选中的应用
+            const targetApp = document.getElementById(appName + '-app');
+            targetApp.style.display = 'flex';
+            // 触发动画
+            setTimeout(() => {
+                targetApp.classList.add('active');
+            }, 10);
+        }
+        
+        function backToHome() {
+            // 隐藏所有应用
+            document.querySelectorAll('.app-container').forEach(app => {
+                app.classList.remove('active');
+                setTimeout(() => {
+                    app.style.display = 'none';
+                }, 300);
+            });
+            // 显示主屏幕
+            setTimeout(() => {
+                document.getElementById('home-screen').style.display = 'block';
+                // 显示dock栏
+                document.querySelector('.dock').style.display = 'flex';
+            }, 300);
+        }
+        
+        // 绑定应用图标点击事件
+        document.querySelectorAll('.app-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const appName = this.getAttribute('data-app');
+                openApp(appName);
+            });
+        });
+        
+        // 切换标签页
+        function switchTab(tabId) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // 显示选中的标签页
+            document.getElementById(tabId).classList.add('active');
+            // 控制底部导航栏显示/隐藏
+            const chatNav = document.querySelector('.chat-nav');
+            if (tabId === 'chat-message-tab') {
+                chatNav.style.display = 'none';
+            } else {
+                chatNav.style.display = 'flex';
+            }
+            // 更新导航项状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            // 激活对应的导航项
+            const navItem = document.querySelector(`.nav-item[onclick="switchTab('${tabId}')"]`);
+            if (navItem) {
+                navItem.classList.add('active');
+            }
+        }
+        
+        // 打开聊天
+        function openChat(contact) {
+            // 查找联系人信息（从存储中获取最新信息）
+            let contactInfo;
+            if (typeof contact === 'object') {
+                const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                contactInfo = contacts.find(c => c.nickname === contact.nickname);
+                if (!contactInfo) contactInfo = contact;
+            } else {
+                const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                contactInfo = contacts.find(c => (c.remark || c.nickname) === contact);
+                if (!contactInfo) {
+                    contactInfo = { 
+                        nickname: contact, 
+                        remark: '', 
+                        bio: '这个人很暖...', 
+                        avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=' + encodeURIComponent(contact + ' avatar') + '&image_size=square' 
+                    };
+                }
+            }
+            
+            // 更新聊天标题（使用备注名称）
+            const chatName = contactInfo.remark || contactInfo.nickname;
+            document.getElementById('chat-title').textContent = chatName;
+            
+            // 保存当前聊天的联系人信息
+            window.currentChatContact = contactInfo;
+            
+            // 加载该联系人的聊天记录
+            loadChatHistoryForContact(chatName);
+            
+            // 切换到具体聊天标签页
+            switchTab('chat-message-tab');
+        }
+        
+        // 加载特定联系人的聊天记录
+        function loadChatHistoryForContact(contactName) {
+            const allHistory = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+            const messages = allHistory[contactName] || [];
+            const messagesContainer = document.getElementById('chat-messages');
+            messagesContainer.innerHTML = '';
+            
+            messages.forEach(msg => {
+                addMessage(msg.text, msg.sender);
+            });
+            
+            // 滚动到底部
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+        
+        // 保存聊天记录到特定联系人
+        function saveChatHistoryForContact(contactName, text, sender) {
+            const allHistory = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+            if (!allHistory[contactName]) {
+                allHistory[contactName] = [];
+            }
+            allHistory[contactName].push({ text: text, sender: sender, timestamp: new Date().toISOString() });
+            localStorage.setItem('chatHistory', JSON.stringify(allHistory));
+        }
+        
+        // 打开联系人详情
+        function openContactDetail(contact) {
+            // 更新联系人详情标题
+            const contactName = typeof contact === 'object' ? (contact.remark || contact.nickname) : contact;
+            document.getElementById('contact-detail-title').textContent = contactName;
+            
+            // 查找完整联系人信息
+            let contactInfo;
+            
+            if (typeof contact === 'object') {
+                contactInfo = contact;
+            } else {
+                const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                contactInfo = contacts.find(c => (c.remark || c.nickname) === contact || c.nickname === contact);
+                
+                // 如果没找到，创建一个新联系人
+                if (!contactInfo) {
+                    contactInfo = {
+                        realName: contactName,
+                        nickname: contactName,
+                        remark: '',
+                        bio: '这个人很暖...',
+                        avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=' + encodeURIComponent(contactName + ' avatar') + '&image_size=square'
+                    };
+                }
+            }
+            
+            // 保存当前联系人信息到全局变量
+            window.currentContactDetail = contactInfo;
+            
+            // 更新联系人详情显示
+            if (contactInfo) {
+                document.getElementById('contact-detail-avatar-img').src = contactInfo.avatar;
+                document.getElementById('contact-detail-name').textContent = contactInfo.realName || contactInfo.nickname;
+                document.getElementById('contact-detail-bio').textContent = contactInfo.bio || '这个人很暖...';
+                document.getElementById('contact-detail-remark').textContent = contactInfo.remark || '暂无备注';
+                document.getElementById('contact-detail-nickname').textContent = contactInfo.nickname || contactName;
+                document.getElementById('contact-detail-realname').textContent = contactInfo.realName || contactName;
+                
+                // 渲染关联的世界书标签
+                renderWorldbookTags();
+            }
+            
+            // 切换到联系人详情标签页
+            switchTab('contact-detail-tab');
+        }
+        
+        // 从详情页打开聊天
+        function openChatFromDetail() {
+            if (window.currentContactDetail) {
+                openChat(window.currentContactDetail);
+            }
+        }
+        
+        // 编辑联系人头像
+        function editContactAvatar() {
+            document.getElementById('contact-avatar-edit').click();
+        }
+        
+        // 更新联系人头像
+        function updateContactAvatar(event) {
+            const file = event.target.files[0];
+            if (file && window.currentContactDetail) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const newAvatar = e.target.result;
+                    window.currentContactDetail.avatar = newAvatar;
+                    
+                    // 更新显示
+                    document.getElementById('contact-detail-avatar-img').src = newAvatar;
+                    
+                    // 保存到本地存储
+                    updateContactInStorage(window.currentContactDetail);
+                    
+                    // 刷新列表显示
+                    refreshContactDisplays();
+                    
+                    alert('头像更新成功！');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 编辑个性签名
+        function editContactBio() {
+            const newBio = prompt('请输入新的个性签名：', window.currentContactDetail?.bio || '');
+            if (newBio !== null) {
+                window.currentContactDetail.bio = newBio || '这个人很暖...';
+                document.getElementById('contact-detail-bio').textContent = window.currentContactDetail.bio;
+                updateContactInStorage(window.currentContactDetail);
+            }
+        }
+        
+        // 编辑备注
+        function editContactRemark() {
+            const newRemark = prompt('请输入新的备注：', window.currentContactDetail?.remark || '');
+            if (newRemark !== null) {
+                window.currentContactDetail.remark = newRemark;
+                document.getElementById('contact-detail-remark').textContent = newRemark || '暂无备注';
+                updateContactInStorage(window.currentContactDetail);
+            }
+        }
+        
+        // 更新联系人存储
+        function updateContactInStorage(contact) {
+            let contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            const index = contacts.findIndex(c => c.nickname === contact.nickname);
+            if (index !== -1) {
+                contacts[index] = contact;
+            } else {
+                contacts.push(contact);
+            }
+            localStorage.setItem('contacts', JSON.stringify(contacts));
+            
+            // 刷新列表和聊天列表显示
+            refreshContactDisplays();
+        }
+        
+        // 删除联系人
+        function deleteContact() {
+            if (!window.currentContactDetail) {
+                return;
+            }
+            
+            if (confirm('确定要删除这个联系人吗？')) {
+                const nickname = window.currentContactDetail.nickname;
+                const displayName = window.currentContactDetail.remark || window.currentContactDetail.nickname;
+                
+                // 从localStorage中删除
+                let contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                contacts = contacts.filter(c => c.nickname !== nickname);
+                localStorage.setItem('contacts', JSON.stringify(contacts));
+                
+                // 删除该联系人的聊天记录
+                const allHistory = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+                delete allHistory[displayName];
+                delete allHistory[nickname];
+                localStorage.setItem('chatHistory', JSON.stringify(allHistory));
+                
+                // 重新渲染列表
+                renderContactLists();
+                
+                // 返回列表
+                switchTab('list-tab');
+            }
+        }
+        
+        // 重新渲染联系人列表
+        function renderContactLists() {
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            
+            // 渲染列表
+            const contactListContainer = document.getElementById('contact-list-container');
+            contactListContainer.innerHTML = '';
+            
+            // 添加保存的联系人
+            contacts.forEach(contact => {
+                addContactToList(contact);
+            });
+            
+            // 渲染聊天列表
+            const chatListContainer = document.getElementById('chat-list-container');
+            chatListContainer.innerHTML = '';
+            
+            // 添加保存的联系人到聊天列表
+            contacts.forEach(contact => {
+                addContactToChatList(contact);
+            });
+        }
+        
+        // 刷新联系人在列表和聊天界面的显示
+        function refreshContactDisplays() {
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            
+            // 刷新列表显示
+            const contactListContainer = document.getElementById('contact-list-container');
+            const existingContacts = contactListContainer.querySelectorAll('.contact-item');
+            existingContacts.forEach(item => {
+                const avatarImg = item.querySelector('.contact-avatar img');
+                const nameSpan = item.querySelector('.contact-name');
+                const descSpan = item.querySelector('.contact-desc');
+                
+                if (avatarImg && nameSpan) {
+                    const name = nameSpan.textContent;
+                    const contact = contacts.find(c => (c.remark || c.nickname) === name || c.nickname === name);
+                    if (contact) {
+                        avatarImg.src = contact.avatar;
+                        const displayName = contact.remark || contact.nickname;
+                        nameSpan.textContent = displayName;
+                        if (descSpan) descSpan.textContent = contact.bio;
+                    }
+                }
+            });
+            
+            // 刷新聊天列表显示
+            const chatListContainer = document.getElementById('chat-list-container');
+            const existingChatItems = chatListContainer.querySelectorAll('.chat-list-item');
+            existingChatItems.forEach(item => {
+                const avatarImg = item.querySelector('.chat-list-avatar img');
+                const nameSpan = item.querySelector('.chat-list-name');
+                const msgSpan = item.querySelector('.chat-list-message');
+                
+                if (avatarImg && nameSpan) {
+                    const name = nameSpan.textContent;
+                    const contact = contacts.find(c => (c.remark || c.nickname) === name || c.nickname === name);
+                    if (contact) {
+                        avatarImg.src = contact.avatar;
+                        const displayName = contact.remark || contact.nickname;
+                        nameSpan.textContent = displayName;
+                        if (msgSpan) msgSpan.textContent = contact.bio;
+                    }
+                }
+            });
+        }
+        
+        // 处理头像上传
+        document.getElementById('avatar-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-avatar').src = e.target.result;
+                    // 提示上传成功
+                    alert('头像上传成功！');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // 保存个人信息
+        function saveProfile() {
+            const username = document.getElementById('username').textContent;
+            const signature = document.getElementById('signature').textContent;
+            const avatar = document.getElementById('profile-avatar').src;
+            
+            // 保存到本地存储
+            localStorage.setItem('profileUsername', username);
+            localStorage.setItem('profileSignature', signature);
+            localStorage.setItem('profileAvatar', avatar);
+            
+            // 提示保存成功
+            alert('保存成功！');
+        }
+        
+        // 加载个人信息
+        function loadProfile() {
+            const username = localStorage.getItem('profileUsername');
+            const signature = localStorage.getItem('profileSignature');
+            const avatar = localStorage.getItem('profileAvatar');
+            
+            if (username) {
+                document.getElementById('username').textContent = username;
+            }
+            if (signature) {
+                document.getElementById('signature').textContent = signature;
+            }
+            if (avatar) {
+                document.getElementById('profile-avatar').src = avatar;
+            }
+        }
+        
+        // 页面加载时加载个人信息
+        window.onload = function() {
+            loadProfile();
+            loadChatHistory();
+            loadSettings();
+            loadIcons();
+            loadContacts();
+            loadWorldbooks();
+        };
+        
+        // 保存设置到本地存储
+        function saveSettings() {
+            const apiKey = document.getElementById('api-key')?.value;
+            const apiUrl = document.getElementById('api-url')?.value;
+            const apiModel = document.getElementById('api-model')?.value;
+            
+            if (apiKey || apiUrl || apiModel) {
+                const settings = {
+                    apiKey: apiKey,
+                    apiUrl: apiUrl,
+                    apiModel: apiModel
+                };
+                localStorage.setItem('appSettings', JSON.stringify(settings));
+                alert('设置保存成功！');
+            }
+        }
+        
+        // 加载本地存储的设置
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('appSettings');
+            if (savedSettings) {
+                const settings = JSON.parse(savedSettings);
+                if (document.getElementById('api-key')) {
+                    document.getElementById('api-key').value = settings.apiKey || '';
+                }
+                if (document.getElementById('api-url')) {
+                    document.getElementById('api-url').value = settings.apiUrl || 'https://api.openai.com/v1/chat/completions';
+                }
+                if (document.getElementById('api-model')) {
+                    document.getElementById('api-model').value = settings.apiModel || 'gpt-3.5-turbo';
+                }
+                
+                // 自动拉取模型列表
+                if (settings.apiKey && settings.apiUrl && document.getElementById('api-key') && document.getElementById('api-url') && document.getElementById('api-model')) {
+                    fetchModels(false);
+                }
+            }
+            
+            // 加载深色模式状态并应用菜单样式
+            const savedDarkMode = localStorage.getItem('darkMode');
+            const isDarkMode = savedDarkMode === 'true';
+            
+            // 应用菜单按钮和菜单样式
+            if (isDarkMode) {
+                document.querySelectorAll('.menu-button').forEach(btn => {
+                    btn.style.color = '#fff';
+                });
+                document.querySelectorAll('.add-contact-btn').forEach(btn => {
+                    btn.style.color = '#fff';
+                });
+                document.querySelectorAll('.chat-menu').forEach(menu => {
+                    menu.style.backgroundColor = '#2c2c2e';
+                });
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.style.color = '#fff';
+                    item.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
+                });
+                // 添加联系人弹窗样式
+                document.querySelectorAll('#add-contact-modal .modal-content').forEach(modal => {
+                    modal.style.backgroundColor = '#2c2c2e';
+                });
+                document.querySelectorAll('#add-contact-modal label').forEach(label => {
+                    label.style.color = '#fff';
+                });
+                document.querySelectorAll('#add-contact-modal h3').forEach(h3 => {
+                    h3.style.color = '#fff';
+                });
+                document.querySelectorAll('#add-contact-modal input').forEach(input => {
+                    input.style.backgroundColor = '#3a3a3c';
+                    input.style.color = '#fff';
+                    input.style.border = 'none';
+                });
+                document.querySelectorAll('#add-contact-modal button').forEach(btn => {
+                    if (btn.textContent === '创建') {
+                        btn.style.backgroundColor = '#007aff';
+                        btn.style.color = '#fff';
+                    } else {
+                        btn.style.backgroundColor = '#3a3a3c';
+                        btn.style.color = '#fff';
+                    }
+                });
+                document.querySelectorAll('#add-contact-modal .upload-button').forEach(btn => {
+                    btn.style.backgroundColor = '#3a3a3c';
+                    btn.style.color = '#fff';
+                });
+            } else {
+                document.querySelectorAll('.menu-button').forEach(btn => {
+                    btn.style.color = '#000';
+                });
+                document.querySelectorAll('.add-contact-btn').forEach(btn => {
+                    btn.style.color = '#000';
+                });
+                document.querySelectorAll('.chat-menu').forEach(menu => {
+                    menu.style.backgroundColor = '#fff';
+                });
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.style.color = '#000';
+                    item.style.borderBottom = '1px solid #e0e0e0';
+                });
+                // 添加联系人弹窗样式
+                document.querySelectorAll('#add-contact-modal .modal-content').forEach(modal => {
+                    modal.style.backgroundColor = '#fff';
+                });
+                document.querySelectorAll('#add-contact-modal label').forEach(label => {
+                    label.style.color = '#000';
+                });
+                document.querySelectorAll('#add-contact-modal h3').forEach(h3 => {
+                    h3.style.color = '#000';
+                });
+                document.querySelectorAll('#add-contact-modal input').forEach(input => {
+                    input.style.backgroundColor = '#f5f5f7';
+                    input.style.color = '#000';
+                    input.style.border = '1px solid #e0e0e0';
+                });
+                document.querySelectorAll('#add-contact-modal button').forEach(btn => {
+                    if (btn.textContent === '创建') {
+                        btn.style.backgroundColor = '#007aff';
+                        btn.style.color = '#fff';
+                    } else {
+                        btn.style.backgroundColor = '#f5f5f7';
+                        btn.style.color = '#000';
+                    }
+                });
+                document.querySelectorAll('#add-contact-modal .upload-button').forEach(btn => {
+                    btn.style.backgroundColor = '#f5f5f7';
+                    btn.style.color = '#000';
+                    btn.style.border = '1px solid #e0e0e0';
+                });
+            }
+        }
+        
+        // 监听设置输入变化，自动保存
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWallpaper();
+            
+            const wallpaperItems = document.querySelectorAll('.wallpaper-item');
+            wallpaperItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const wallpaperUrl = this.querySelector('img').src;
+                    setWallpaper(wallpaperUrl);
+                });
+            });
+        });
+        
+        // 设置壁纸
+        function setWallpaper(wallpaperUrl) {
+            localStorage.setItem('wallpaper', wallpaperUrl);
+            const homeScreen = document.querySelector('.home-screen');
+            if (wallpaperUrl === 'white') {
+                homeScreen.style.backgroundColor = '#ffffff';
+                homeScreen.style.backgroundImage = 'none';
+            } else if (wallpaperUrl === 'black') {
+                homeScreen.style.backgroundColor = '#000000';
+                homeScreen.style.backgroundImage = 'none';
+            } else {
+                homeScreen.style.backgroundImage = `url(${wallpaperUrl})`;
+                homeScreen.style.backgroundSize = 'cover';
+                homeScreen.style.backgroundPosition = 'center';
+            }
+        }
+        
+        // 上传本地壁纸
+        function uploadWallpaper(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    localStorage.setItem('wallpaper', imageData);
+                    const homeScreen = document.querySelector('.home-screen');
+                    homeScreen.style.backgroundImage = `url(${imageData})`;
+                    homeScreen.style.backgroundSize = 'cover';
+                    homeScreen.style.backgroundPosition = 'center';
+                    alert('壁纸设置成功！');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 加载保存的壁纸
+        function loadWallpaper() {
+            const savedWallpaper = localStorage.getItem('wallpaper');
+            if (savedWallpaper) {
+                const homeScreen = document.querySelector('.home-screen');
+                if (savedWallpaper === 'white') {
+                    homeScreen.style.backgroundColor = '#ffffff';
+                    homeScreen.style.backgroundImage = 'none';
+                } else if (savedWallpaper === 'black') {
+                    homeScreen.style.backgroundColor = '#000000';
+                    homeScreen.style.backgroundImage = 'none';
+                } else {
+                    homeScreen.style.backgroundImage = `url(${savedWallpaper})`;
+                    homeScreen.style.backgroundSize = 'cover';
+                    homeScreen.style.backgroundPosition = 'center';
+                }
+            }
+        }
+        
+        // 上传单个应用图标
+        function uploadAppIcon(event, appName) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    let individualIcons = JSON.parse(localStorage.getItem('individualIcons') || '{}');
+                    individualIcons[appName] = imageData;
+                    localStorage.setItem('individualIcons', JSON.stringify(individualIcons));
+                    applyAppIcon(appName, imageData);
+                    alert(appName + ' 图标设置成功！');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 应用单个应用图标
+        function applyAppIcon(appName, iconData) {
+            const appIcons = document.querySelectorAll('.app-icon[data-app="' + appName + '"] img');
+            appIcons.forEach(iconImg => {
+                iconImg.src = iconData;
+            });
+        }
+        
+        // 加载保存的图标
+        function loadIcons() {
+            const individualIcons = JSON.parse(localStorage.getItem('individualIcons') || '{}');
+            
+            const appNames = ['settings', 'chat', 'beautify', 'worldbook', 'forum', 'profile', 'shopping'];
+            appNames.forEach(appName => {
+                if (individualIcons[appName]) {
+                    applyAppIcon(appName, individualIcons[appName]);
+                }
+            });
+        }
+        
+        // 加载世界书
+        function loadWorldbooks() {
+            const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+            const worldbookList = document.getElementById('worldbook-list');
+            worldbookList.innerHTML = '';
+            
+            worldbooks.forEach((wb, index) => {
+                const item = document.createElement('div');
+                item.className = 'content-item';
+                item.innerHTML = `
+                    <h4>${wb.title}</h4>
+                    <p>${wb.content.substring(0, 100)}${wb.content.length > 100 ? '...' : ''}</p>
+                    <div class="meta">${wb.date}</div>
+                `;
+                item.onclick = function() { viewWorldbook(index); };
+                worldbookList.appendChild(item);
+            });
+        }
+        
+        // 显示添加世界书弹窗
+        function showAddWorldbookModal() {
+            document.getElementById('add-worldbook-modal').style.display = 'flex';
+        }
+        
+        // 关闭添加世界书弹窗
+        function closeAddWorldbookModal() {
+            document.getElementById('add-worldbook-modal').style.display = 'none';
+            document.getElementById('worldbook-title').value = '';
+            document.getElementById('worldbook-content').value = '';
+        }
+        
+        // 保存世界书
+        function saveWorldbook() {
+            const title = document.getElementById('worldbook-title').value.trim();
+            const content = document.getElementById('worldbook-content').value.trim();
+            
+            if (!title || !content) {
+                alert('请填写标题和内容！');
+                return;
+            }
+            
+            const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+            worldbooks.push({
+                title: title,
+                content: content,
+                date: new Date().toLocaleDateString()
+            });
+            localStorage.setItem('worldbooks', JSON.stringify(worldbooks));
+            
+            closeAddWorldbookModal();
+            loadWorldbooks();
+            alert('世界书创建成功！');
+        }
+        
+        // 查看世界书详情
+        function viewWorldbook(index) {
+            const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+            const wb = worldbooks[index];
+            if (wb) {
+                const modal = document.createElement('div');
+                modal.id = 'worldbook-view-modal';
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;';
+                modal.innerHTML = `
+                    <div style="background-color: #2c2c2e; padding: 20px; border-radius: 12px; width: 85%; max-width: 350px; max-height: 80vh; overflow-y: auto;">
+                        <h3 style="margin-top: 0; color: #fff; text-align: center;">${wb.title}</h3>
+                        <p style="color: #ccc; white-space: pre-wrap; line-height: 1.6; margin: 20px 0;">${wb.content}</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="deleteWorldbook(${index}); document.getElementById('worldbook-view-modal').remove();" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background-color: #ff3b30; color: #fff; cursor: pointer;">删除</button>
+                            <button onclick="document.getElementById('worldbook-view-modal').remove()" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background-color: #007aff; color: #fff; cursor: pointer;">关闭</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+        }
+        
+        // 删除世界书
+        function deleteWorldbook(index) {
+            if (confirm('确定要删除这篇世界书吗？')) {
+                let worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+                worldbooks.splice(index, 1);
+                localStorage.setItem('worldbooks', JSON.stringify(worldbooks));
+                loadWorldbooks();
+                
+                // 更新所有联系人的世界书索引
+                let contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                contacts.forEach(contact => {
+                    if (contact.worldbooks) {
+                        contact.worldbooks = contact.worldbooks.filter(i => i !== index).map(i => i > index ? i - 1 : i);
+                    }
+                });
+                localStorage.setItem('contacts', JSON.stringify(contacts));
+            }
+        }
+        
+        // 获取世界书内容（供AI使用）
+        function getWorldbookContent() {
+            const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+            if (worldbooks.length === 0) return '';
+            
+            let content = '【世界书内容】\n\n';
+            worldbooks.forEach((wb, index) => {
+                content += `【${index + 1}. ${wb.title}】\n${wb.content}\n\n`;
+            });
+            return content;
+        }
+        
+        // 显示世界书选择器
+        function showWorldbookSelector() {
+            const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+            if (worldbooks.length === 0) {
+                alert('请先在世界书中创建内容！');
+                return;
+            }
+            
+            let currentWorldbooks = window.currentContactDetail?.worldbooks || [];
+            let message = '选择要关联的世界书（当前已关联 ' + currentWorldbooks.length + ' 个）：\n\n';
+            worldbooks.forEach((wb, index) => {
+                const isSelected = currentWorldbooks.includes(index);
+                message += (isSelected ? '☑' : '☐') + ' ' + (index + 1) + '. ' + wb.title + '\n';
+            });
+            message += '\n请回复数字编号（多个用逗号分隔，如：1,2,3）';
+            
+            const choice = prompt(message);
+            if (choice !== null) {
+                const selected = choice.split(',').map(s => parseInt(s.trim()) - 1).filter(n => !isNaN(n) && n >= 0 && n < worldbooks.length);
+                
+                if (window.currentContactDetail) {
+                    window.currentContactDetail.worldbooks = selected;
+                    
+                    // 保存到localStorage
+                    let contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                    const idx = contacts.findIndex(c => c.nickname === window.currentContactDetail.nickname);
+                    if (idx !== -1) {
+                        contacts[idx].worldbooks = selected;
+                        localStorage.setItem('contacts', JSON.stringify(contacts));
+                    }
+                    
+                    renderWorldbookTags();
+                }
+            }
+        }
+        
+        // 渲染世界书标签
+        function renderWorldbookTags() {
+            const tagsContainer = document.getElementById('worldbook-tags');
+            const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+            const selectedIndices = window.currentContactDetail?.worldbooks || [];
+            
+            tagsContainer.innerHTML = '';
+            selectedIndices.forEach(idx => {
+                if (worldbooks[idx]) {
+                    const tag = document.createElement('span');
+                    tag.style.cssText = 'background-color: #007aff; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px;';
+                    tag.textContent = worldbooks[idx].title;
+                    tagsContainer.appendChild(tag);
+                }
+            });
+            
+            if (selectedIndices.length === 0) {
+                tagsContainer.innerHTML = '<span style="color: #8e8e93; font-size: 14px;">未关联世界书</span>';
+            }
+        }
+        
+        // 获取当前联系人的世界书内容
+        function getContactWorldbookContent() {
+            const contact = window.currentChatContact;
+            if (!contact) return '';
+            
+            const contactName = contact.remark || contact.nickname;
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            const contactInfo = contacts.find(c => (c.remark || c.nickname) === contactName);
+            
+            const selectedIndices = contactInfo?.worldbooks || [];
+            if (selectedIndices.length === 0) return '';
+            
+            const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+            
+            let content = '';
+            selectedIndices.forEach(idx => {
+                if (worldbooks[idx]) {
+                    content += `【${worldbooks[idx].title}】\n${worldbooks[idx].content}\n\n`;
+                }
+            });
+            return content;
+        }
+        
+        // 获取系统提示词
+        function getSystemPrompt() {
+            const contact = window.currentChatContact;
+            let prompt = '';
+            
+            // 添加联系人的人设信息
+            if (contact) {
+                if (contact.bio) {
+                    prompt += contact.bio + '\n\n';
+                }
+                if (contact.nickname) {
+                    prompt += '你的名字是：' + contact.nickname + '\n';
+                }
+                if (contact.realName) {
+                    prompt += '你的真实姓名是：' + contact.realName + '\n';
+                }
+            }
+            
+            // 添加世界书内容
+            const worldbookContent = getContactWorldbookContent();
+            if (worldbookContent) {
+                prompt += worldbookContent + '\n';
+            }
+            
+            // 根据人设添加回复风格指令
+            const fullPrompt = prompt.toLowerCase();
+            if (fullPrompt.includes('冷漠') || fullPrompt.includes('高冷') || fullPrompt.includes('话少') || fullPrompt.includes('冷淡') || fullPrompt.includes('惜字如金')) {
+                prompt += '\n【回复风格】你是一个冷漠的人，回复要简短，通常只说几个字，最多一两句话。不要太热情。';
+            } else if (fullPrompt.includes('热情') || fullPrompt.includes('活泼') || fullPrompt.includes('话多')) {
+                prompt += '\n【回复风格】你是一个热情活泼的人，回复可以多一些，表达要热情洋溢。';
+            }
+            
+            if (!prompt || prompt.trim() === '') {
+                prompt = '你是一个友好的AI聊天伙伴，名字叫暖味。';
+            }
+            
+            return prompt;
+        }
+        
+        // 拉取模型列表
+        async function fetchModels(showAlert = true) {
+            const apiKeyElement = document.getElementById('api-key');
+            const apiUrlElement = document.getElementById('api-url');
+            const modelSelect = document.getElementById('api-model');
+            
+            // 检查元素是否存在
+            if (!apiKeyElement || !apiUrlElement || !modelSelect) {
+                return;
+            }
+            
+            const apiKey = apiKeyElement.value;
+            const apiUrl = apiUrlElement.value;
+            
+            if (!apiKey || !apiUrl) {
+                return;
+            }
+            
+            try {
+                // 从API地址中提取基础URL
+                const baseUrl = apiUrl.split('/chat/completions')[0];
+                const modelsUrl = `${baseUrl}/models`;
+                
+                const response = await fetch(modelsUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('拉取模型失败');
+                }
+                
+                const data = await response.json();
+                const models = data.data;
+                
+                // 清空现有选项
+                modelSelect.innerHTML = '';
+                
+                // 添加新模型选项
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.id;
+                    modelSelect.appendChild(option);
+                });
+                
+                // 只有当需要显示提示时才显示
+                if (showAlert) {
+                    alert('模型拉取成功');
+                }
+            } catch (error) {
+                console.error('拉取模型错误:', error);
+                // 只有当需要显示提示时才显示
+                if (showAlert) {
+                    alert('拉取模型失败，请检查API配置');
+                }
+            }
+        }
+        
+        // 切换深色模式
+        function toggleDarkMode() {
+            const isDarkMode = document.getElementById('dark-mode-toggle').checked;
+            localStorage.setItem('darkMode', isDarkMode);
+            
+            if (isDarkMode) {
+                document.body.style.backgroundColor = '#121212';
+                document.body.style.color = '#fff';
+                document.querySelector('.phone-container').style.backgroundColor = '#000';
+                document.querySelector('.status-bar').style.backgroundColor = '#000';
+                document.querySelector('.status-bar').style.color = '#fff';
+                document.querySelector('.home-screen').style.backgroundColor = '#1c1c1e';
+                document.querySelectorAll('.app-icon span').forEach(span => {
+                    span.style.color = '#fff';
+                });
+                document.querySelectorAll('.app-container').forEach(app => {
+                    app.style.backgroundColor = '#1c1c1e';
+                    app.style.color = '#fff';
+                });
+                document.querySelectorAll('.app-header').forEach(header => {
+                    header.style.backgroundColor = '#2c2c2e';
+                    header.style.color = '#fff';
+                    header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
+                });
+                document.querySelectorAll('.settings-item').forEach(item => {
+                    item.style.backgroundColor = '#2c2c2e';
+                    item.style.color = '#fff';
+                    item.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
+                });
+                document.querySelectorAll('.settings-item h3').forEach(h3 => {
+                    h3.style.color = '#8e8e93';
+                });
+                document.querySelectorAll('.content-item').forEach(item => {
+                    item.style.backgroundColor = '#2c2c2e';
+                    item.style.color = '#fff';
+                });
+                document.querySelectorAll('.content-item .meta').forEach(meta => {
+                    meta.style.color = '#6e6e73';
+                });
+                document.querySelectorAll('.product-item').forEach(item => {
+                    item.style.backgroundColor = '#2c2c2e';
+                    item.style.color = '#fff';
+                });
+                document.querySelector('.chat-input').style.backgroundColor = '#2c2c2e';
+                document.querySelector('.chat-input input').style.backgroundColor = '#3a3a3c';
+                document.querySelector('.chat-input input').style.color = '#fff';
+                document.querySelector('.chat-nav').style.backgroundColor = '#2c2c2e';
+                document.querySelector('.chat-nav').style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.style.color = '#8e8e93';
+                });
+                document.querySelectorAll('.nav-item.active').forEach(item => {
+                    item.style.color = '#000';
+                });
+                document.querySelectorAll('.chat-list-item').forEach(item => {
+                    item.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
+                });
+                document.querySelectorAll('.chat-header').forEach(header => {
+                    header.style.backgroundColor = '#2c2c2e';
+                    header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
+                });
+                document.querySelectorAll('.menu-button').forEach(btn => {
+                    btn.style.color = '#fff';
+                });
+                document.querySelectorAll('.add-contact-btn').forEach(btn => {
+                    btn.style.color = '#fff';
+                });
+                document.querySelectorAll('.chat-menu').forEach(menu => {
+                    menu.style.backgroundColor = '#2c2c2e';
+                });
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.style.color = '#fff';
+                    item.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
+                });
+                document.querySelector('.profile-section').style.borderBottom = '8px solid #1c1c1e';
+                document.querySelectorAll('.function-item').forEach(item => {
+                    item.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
+                });
+                document.querySelector('.profile-signature').style.color = '#fff';
+                document.querySelector('.dock').style.backgroundColor = 'rgba(30, 30, 32, 0.8)';
+                document.querySelector('.dock').style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
+            } else {
+                document.body.style.backgroundColor = '#f5f5f7';
+                document.body.style.color = '#000';
+                document.querySelector('.phone-container').style.backgroundColor = '#fff';
+                document.querySelector('.status-bar').style.backgroundColor = '#fff';
+                document.querySelector('.status-bar').style.color = '#000';
+                document.querySelector('.home-screen').style.backgroundColor = '#f5f5f7';
+                document.querySelectorAll('.app-icon span').forEach(span => {
+                    span.style.color = '#000';
+                });
+                document.querySelectorAll('.app-container').forEach(app => {
+                    app.style.backgroundColor = '#f5f5f7';
+                    app.style.color = '#000';
+                });
+                document.querySelectorAll('.app-header').forEach(header => {
+                    header.style.backgroundColor = '#fff';
+                    header.style.color = '#000';
+                    header.style.borderBottom = '1px solid #e0e0e0';
+                });
+                document.querySelectorAll('.settings-item').forEach(item => {
+                    item.style.backgroundColor = '#fff';
+                    item.style.color = '#000';
+                    item.style.borderBottom = '1px solid #e0e0e0';
+                });
+                document.querySelectorAll('.settings-item h3').forEach(h3 => {
+                    h3.style.color = '#8e8e93';
+                });
+                document.querySelectorAll('.content-item').forEach(item => {
+                    item.style.backgroundColor = '#fff';
+                    item.style.color = '#000';
+                });
+                document.querySelectorAll('.content-item .meta').forEach(meta => {
+                    meta.style.color = '#6e6e73';
+                });
+                document.querySelectorAll('.product-item').forEach(item => {
+                    item.style.backgroundColor = '#fff';
+                    item.style.color = '#000';
+                });
+                document.querySelector('.chat-input').style.backgroundColor = '#fff';
+                document.querySelector('.chat-input input').style.backgroundColor = '#3a3a3c';
+                document.querySelector('.chat-input input').style.color = '#fff';
+                document.querySelector('.chat-nav').style.backgroundColor = '#fff';
+                document.querySelector('.chat-nav').style.borderTop = '1px solid #e0e0e0';
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.style.color = '#8e8e93';
+                });
+                document.querySelectorAll('.nav-item.active').forEach(item => {
+                    item.style.color = '#000';
+                });
+                document.querySelectorAll('.chat-list-item').forEach(item => {
+                    item.style.borderBottom = '1px solid #e0e0e0';
+                });
+                document.querySelectorAll('.chat-header').forEach(header => {
+                    header.style.backgroundColor = '#fff';
+                    header.style.borderBottom = '1px solid #e0e0e0';
+                });
+                document.querySelectorAll('.menu-button').forEach(btn => {
+                    btn.style.color = '#000';
+                });
+                document.querySelectorAll('.add-contact-btn').forEach(btn => {
+                    btn.style.color = '#000';
+                });
+                document.querySelectorAll('.chat-menu').forEach(menu => {
+                    menu.style.backgroundColor = '#fff';
+                });
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.style.color = '#000';
+                    item.style.borderBottom = '1px solid #e0e0e0';
+                });
+                document.querySelector('.profile-section').style.borderBottom = '8px solid #f0f0f0';
+                document.querySelectorAll('.function-item').forEach(item => {
+                    item.style.borderBottom = '1px solid #e0e0e0';
+                });
+                document.querySelector('.profile-signature').style.color = '#333';
+                document.querySelector('.save-section button').style.backgroundColor = '#f0f0f0';
+                document.querySelector('.save-section button').style.color = '#333';
+                document.querySelector('.save-section button').style.border = '1px solid #e0e0e0';
+                document.querySelector('.dock').style.backgroundColor = 'rgba(245, 245, 247, 0.8)';
+                document.querySelector('.dock').style.borderTop = '1px solid #e0e0e0';
+            }
+        }
+        
+        // 个人应用功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载深色模式设置，默认关闭
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode !== null) {
+                document.getElementById('dark-mode-toggle').checked = savedDarkMode === 'true';
+            } else {
+                // 默认关闭深色模式
+                document.getElementById('dark-mode-toggle').checked = false;
+                localStorage.setItem('darkMode', 'false');
+            }
+            // 应用深色模式设置
+            toggleDarkMode();
+            
+
+            
+            // 购物应用购买按钮
+            const buyButtons = document.querySelectorAll('.product-item button');
+            buyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const productName = this.parentElement.querySelector('h4').textContent;
+                    alert(`让AI为你购买 ${productName}，正在处理中...`);
+                });
+            });
+            
+            // 世界书和论坛内容点击事件
+            const contentItems = document.querySelectorAll('.content-item');
+            contentItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const title = this.querySelector('h4').textContent;
+                    alert(`查看 ${title} 的详细内容...`);
+                });
+            });
+        });
+        
+        // 聊天功能
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                // 检查API配置
+                if (!checkAPIConfig()) {
+                    alert('API配置不完整，请先在设置中配置API密钥和地址');
+                    return;
+                }
+                
+                // 添加用户消息
+                addMessage(message, 'user');
+                // 清空输入框
+                input.value = '';
+                // 调用AI API获取回复
+                getAIResponse(message);
+            }
+        }
+        
+        // 切换聊天菜单
+        // 添加联系人相关函数
+        let contactAvatarData = '';
+        
+        function showAddContactModal() {
+            document.getElementById('add-contact-modal').style.display = 'flex';
+            contactAvatarData = '';
+            document.getElementById('avatar-preview').style.display = 'none';
+            document.getElementById('contact-real-name').value = '';
+            document.getElementById('contact-nickname').value = '';
+            document.getElementById('contact-remark').value = '';
+            document.getElementById('contact-bio').value = '';
+        }
+        
+        function closeAddContactModal() {
+            document.getElementById('add-contact-modal').style.display = 'none';
+        }
+        
+        function previewContactAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    contactAvatarData = e.target.result;
+                    document.getElementById('avatar-preview-img').src = contactAvatarData;
+                    document.getElementById('avatar-preview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function createContact() {
+            const realName = document.getElementById('contact-real-name').value.trim();
+            const nickname = document.getElementById('contact-nickname').value.trim();
+            const remark = document.getElementById('contact-remark').value.trim();
+            const bio = document.getElementById('contact-bio').value.trim();
+            
+            if (!realName) {
+                alert('请输入真实姓名');
+                return;
+            }
+            if (!nickname) {
+                alert('请输入网名');
+                return;
+            }
+            
+            const displayName = remark || nickname;
+            const displayBio = bio || '这个人很暖...';
+            
+            const contact = {
+                realName: realName,
+                nickname: nickname,
+                remark: remark,
+                bio: displayBio,
+                avatar: contactAvatarData || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=' + encodeURIComponent(nickname + ' avatar') + '&image_size=square'
+            };
+            
+            // 保存到本地存储
+            let contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            contacts.push(contact);
+            localStorage.setItem('contacts', JSON.stringify(contacts));
+            
+            // 添加到列表和聊天列表显示
+            addContactToList(contact);
+            addContactToChatList(contact);
+            
+            closeAddContactModal();
+            alert('创建成功！');
+        }
+        
+        function addContactToList(contact) {
+            const contactListContainer = document.getElementById('contact-list-container');
+            const displayName = contact.remark || contact.nickname;
+            
+            const contactItem = document.createElement('div');
+            contactItem.className = 'contact-item';
+            contactItem.onclick = function() {
+                openContactDetail(contact);
+            };
+            
+            contactItem.innerHTML = `
+                <div class="contact-avatar">
+                    <img src="${contact.avatar}" alt="${displayName}">
+                </div>
+                <div class="contact-info">
+                    <div class="contact-name">${displayName}</div>
+                    <div class="contact-desc">${contact.bio}</div>
+                </div>
+                <div class="contact-arrow">›</div>
+            `;
+            
+            contactListContainer.appendChild(contactItem);
+        }
+        
+        function addContactToChatList(contact) {
+            const chatListContainer = document.getElementById('chat-list-container');
+            const displayName = contact.remark || contact.nickname;
+            
+            const contactItem = document.createElement('div');
+            contactItem.className = 'chat-list-item';
+            contactItem.onclick = function() {
+                openChat(contact);
+            };
+            
+            contactItem.innerHTML = `
+                <div class="chat-list-avatar">
+                    <img src="${contact.avatar}" alt="${displayName}">
+                </div>
+                <div class="chat-list-info">
+                    <div class="chat-list-name">${displayName}</div>
+                    <div class="chat-list-message">${contact.bio}</div>
+                </div>
+                <div class="chat-list-time">${new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'})}</div>
+            `;
+            
+            chatListContainer.appendChild(contactItem);
+        }
+        
+        function loadContacts() {
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            contacts.forEach(contact => {
+                addContactToList(contact);
+                addContactToChatList(contact);
+            });
+        }
+        
+        function toggleChatMenu() {
+            const menu = document.getElementById('chat-menu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+        
+        // 清空聊天记录
+        function clearChatHistory() {
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = '';
+            // 保存清空后的聊天记录（仅清空当前联系人的）
+            const chatName = document.getElementById('chat-title').textContent;
+            if (chatName) {
+                const allHistory = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+                allHistory[chatName] = [];
+                localStorage.setItem('chatHistory', JSON.stringify(allHistory));
+            }
+            // 关闭菜单
+            document.getElementById('chat-menu').style.display = 'none';
+        }
+        
+        // 检查API配置
+        function checkAPIConfig() {
+            const apiKey = localStorage.getItem('appSettings') ? JSON.parse(localStorage.getItem('appSettings')).apiKey : '';
+            const apiUrl = localStorage.getItem('appSettings') ? JSON.parse(localStorage.getItem('appSettings')).apiUrl : '';
+            return apiKey && apiUrl;
+        }
+        
+        async function getAIResponse(message) {
+            // 从本地存储获取API配置
+            let apiKey = '';
+            let apiUrl = '';
+            let model = 'gpt-3.5-turbo';
+            
+            const savedSettings = localStorage.getItem('appSettings');
+            console.log('=== API配置检查开始 ===');
+            console.log('本地存储的设置:', savedSettings);
+            
+            if (savedSettings) {
+                try {
+                    const settings = JSON.parse(savedSettings);
+                    apiKey = settings.apiKey || '';
+                    apiUrl = settings.apiUrl || 'https://api.openai.com/v1/chat/completions';
+                    model = settings.apiModel || 'gpt-3.5-turbo';
+                    console.log('解析后的API配置:');
+                    console.log('- API密钥:', apiKey ? '已配置 (长度: ' + apiKey.length + ')' : '未配置');
+                    console.log('- API地址:', apiUrl);
+                    console.log('- 模型:', model);
+                } catch (e) {
+                    console.error('解析设置失败:', e);
+                    addMessage('❌ 配置解析失败\n\n请重新配置API设置', 'ai');
+                    return;
+                }
+            } else {
+                console.log('本地存储中没有设置');
+                addMessage('❌ 未找到API配置\n\n请先在设置中配置API信息', 'ai');
+                return;
+            }
+            
+            // 检查API配置
+            if (!apiKey) {
+                console.log('API密钥未配置');
+                addMessage('❌ API配置不完整\n\n请先在设置中配置API密钥', 'ai');
+                return;
+            }
+            
+            if (!apiUrl) {
+                console.log('API地址未配置');
+                addMessage('❌ API配置不完整\n\n请先在设置中配置API地址', 'ai');
+                return;
+            }
+            
+            console.log('=== API配置检查完成 ===');
+            console.log('准备使用以下配置发送请求:');
+            console.log('- API地址:', apiUrl);
+            console.log('- 模型:', model);
+            console.log('- 消息:', message)
+            
+            try {
+                // 显示加载状态
+                addMessage('正在输入中...', 'ai');
+                
+                // 处理API URL，确保它包含正确的端点
+                let chatUrl = apiUrl;
+                // 检查URL是否已经包含/chat/completions
+                if (!chatUrl.endsWith('/chat/completions')) {
+                    // 如果不包含，添加它
+                    if (chatUrl.endsWith('/')) {
+                        chatUrl += 'chat/completions';
+                    } else {
+                        chatUrl += '/chat/completions';
+                    }
+                }
+                
+                console.log('API请求信息:', {
+                    apiUrl: chatUrl,
+                    model: model,
+                    message: message
+                });
+                
+                // 检查API URL格式
+                try {
+                    new URL(chatUrl);
+                } catch (e) {
+                    throw new Error('API地址格式错误，请检查URL格式');
+                }
+                
+                const systemPrompt = getSystemPrompt();
+                console.log('=== 发送给API的系统提示词 ===');
+                console.log(systemPrompt);
+                
+                const response = await fetch(chatUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: message }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+                
+                // 移除加载状态消息
+                const messages = document.getElementById('chat-messages');
+                if (messages.lastChild && messages.lastChild.textContent === '正在输入中...') {
+                    messages.removeChild(messages.lastChild);
+                }
+                
+                console.log('API响应状态:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    // 尝试获取详细的错误信息
+                    try {
+                        const errorData = await response.json();
+                        console.log('API错误详情:', errorData);
+                        let errorMessage = `API请求失败: ${response.status} ${response.statusText}`;
+                        if (errorData.error?.message) {
+                            errorMessage += `\n${errorData.error.message}`;
+                        }
+                        // 常见错误提示
+                        if (errorData.error?.code === 'invalid_api_key') {
+                            errorMessage += '\n\n请检查API密钥是否正确';
+                        } else if (errorData.error?.code === 'insufficient_quota') {
+                            errorMessage += '\n\nAPI配额不足';
+                        } else if (errorData.error?.code === 'rate_limit_exceeded') {
+                            errorMessage += '\n\nAPI速率限制 exceeded';
+                        }
+                        throw new Error(errorMessage);
+                    } catch (e) {
+                        throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+                    }
+                }
+                
+                const data = await response.json();
+                console.log('API响应数据:', data);
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+                    throw new Error('API响应格式错误');
+                }
+                
+                const aiMessage = data.choices[0].message.content;
+                addMessage(aiMessage, 'ai');
+            } catch (error) {
+                console.error('API调用错误:', error);
+                
+                // 移除加载状态消息
+                const messages = document.getElementById('chat-messages');
+                if (messages.lastChild && messages.lastChild.textContent === '正在输入中...') {
+                    messages.removeChild(messages.lastChild);
+                }
+                
+                // 网络错误处理
+                if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                    addMessage('❌ 网络连接失败\n\n请检查网络连接和API地址', 'ai');
+                } else {
+                    // 显示明确的错误提示
+                    addMessage('❌ AI服务连接失败\n\n' + error.message + '\n\n请检查API配置后重试', 'ai');
+                }
+            }
+        }
+        
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+            // 滚动到底部
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // 保存聊天记录到本地存储（按联系人）
+            const chatName = document.getElementById('chat-title').textContent;
+            if (chatName) {
+                saveChatHistoryForContact(chatName, text, sender);
+            }
+        }
+        
+        // 保存聊天记录到本地存储
+        function saveChatHistory() {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messages = [];
+            
+            messagesContainer.querySelectorAll('.message').forEach(msg => {
+                const text = msg.textContent;
+                const sender = msg.className.includes('user-message') ? 'user' : 'ai';
+                messages.push({ text, sender });
+            });
+            
+            localStorage.setItem('chatHistory', JSON.stringify(messages));
+        }
+        
+        // 加载聊天记录从本地存储
+        function loadChatHistory() {
+            const savedHistory = localStorage.getItem('chatHistory');
+            if (savedHistory) {
+                try {
+                    const messages = JSON.parse(savedHistory);
+                    const messagesContainer = document.getElementById('chat-messages');
+                    messagesContainer.innerHTML = '';
+                    
+                    messages.forEach(msg => {
+                        addMessage(msg.text, msg.sender);
+                    });
+                } catch (e) {
+                    console.error('加载聊天记录失败:', e);
+                }
+            }
+        }
+        
+        // 导出数据
+        function exportData() {
+            const data = {
+                appSettings: JSON.parse(localStorage.getItem('appSettings') || '{}'),
+                chatHistory: JSON.parse(localStorage.getItem('chatHistory') || '[]'),
+                profile: JSON.parse(localStorage.getItem('profile') || '{}'),
+                darkMode: localStorage.getItem('darkMode')
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `ai-phone-data-${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            alert('数据导出成功！');
+        }
+        
+        // 导入数据
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (data.appSettings) {
+                            localStorage.setItem('appSettings', JSON.stringify(data.appSettings));
+                        }
+                        if (data.chatHistory) {
+                            localStorage.setItem('chatHistory', JSON.stringify(data.chatHistory));
+                        }
+                        if (data.profile) {
+                            localStorage.setItem('profile', JSON.stringify(data.profile));
+                        }
+                        if (data.darkMode !== undefined) {
+                            localStorage.setItem('darkMode', data.darkMode);
+                        }
+                        
+                        alert('数据导入成功！请刷新页面以应用更改。');
+                    } catch (error) {
+                        alert('导入失败：无效的JSON文件');
+                        console.error('导入数据失败:', error);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // 清空所有数据
+        function clearData() {
+            if (confirm('确定要清空所有数据吗？此操作不可恢复。')) {
+                // 保留壁纸和图标设置
+                const wallpaper = localStorage.getItem('wallpaper');
+                const icons = localStorage.getItem('customIcons');
+                
+                // 清空所有数据
+                localStorage.removeItem('appSettings');
+                localStorage.removeItem('chatHistory');
+                localStorage.removeItem('profile');
+                localStorage.removeItem('darkMode');
+                localStorage.removeItem('contacts');
+                localStorage.removeItem('defaultContactDeleted');
+                localStorage.removeItem('defaultAvatar');
+                localStorage.removeItem('worldbooks');
+                
+                // 恢复保留的设置
+                if (wallpaper) localStorage.setItem('wallpaper', wallpaper);
+                if (icons) localStorage.setItem('customIcons', icons);
+                
+                // 刷新页面
+                location.reload();
+            }
+        }
+        
+        // 回车发送消息
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
