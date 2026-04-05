@@ -11,6 +11,43 @@
             box-sizing: border-box;
         }
         
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        
+        * {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .msg-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #999;
+            border-radius: 4px;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .msg-checkbox:checked {
+            background: #333;
+            border-color: #333;
+        }
+        
+        .msg-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: #121212;
@@ -208,11 +245,33 @@
         
         .message {
             max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
             opacity: 0;
             transform: translateY(20px);
             animation: messageFadeIn 0.3s ease forwards;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .msg-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .user-message .msg-avatar {
+            margin-left: 8px;
+        }
+        
+        .ai-message .msg-avatar {
+            margin-right: 8px;
+        }
+        
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
         }
         
         @keyframes messageFadeIn {
@@ -224,16 +283,10 @@
         
         .user-message {
             align-self: flex-end;
-            background-color: #3a3a3c;
-            color: #fff;
-            border-bottom-right-radius: 4px;
         }
         
         .ai-message {
             align-self: flex-start;
-            background-color: #3a3a3c;
-            color: #fff;
-            border-bottom-left-radius: 4px;
         }
         
         .chat-input {
@@ -273,12 +326,14 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         
         .tab-content {
             display: none;
             flex: 1;
             height: 100%;
+            min-height: 0;
             overflow: hidden;
         }
         
@@ -300,8 +355,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             cursor: pointer;
-            padding: 15px 0;
+            height: 50px;
+            flex: 1;
+            box-sizing: border-box;
             color: #8e8e93;
         }
         
@@ -316,7 +374,9 @@
         
         /* 聊天列表样式 */
         .chat-list-container {
+            flex: 1;
             padding: 0;
+            overflow-y: auto;
         }
         
         .chat-list-item {
@@ -370,7 +430,9 @@
         
         /* 通讯录样式 */
         .contact-list-container {
+            flex: 1;
             padding: 0;
+            overflow-y: auto;
         }
         
         .contact-item {
@@ -423,8 +485,9 @@
         
         /* 联系人详情样式 */
         .contact-detail-content {
+            flex: 1;
             padding: 20px;
-            text-align: center;
+            overflow-y: auto;
         }
         
         .contact-detail-avatar {
@@ -654,7 +717,14 @@
         
         /* 暖味圈样式 */
         .moments-container {
+            flex: 1;
             padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .moments-header {
+            background-size: cover;
+            background-position: center;
         }
         
         .moment-item {
@@ -720,14 +790,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 300px;
+            height: 200px;
             color: #8e8e93;
-            font-size: 16px;
+            font-size: 14px;
         }
         
         /* 主页样式 */
         .home-container {
+            flex: 1;
             padding: 20px;
+            overflow-y: auto;
         }
         
         .home-section {
@@ -1267,7 +1339,7 @@
                         <p class="contact-signature" id="contact-detail-bio" onclick="editContactBio()"></p>
                         <div class="contact-actions">
                             <button class="action-btn chat-btn" id="contact-chat-btn" onclick="openChatFromDetail()">发消息</button>
-                            <button class="action-btn moments-btn">查看暖味圈</button>
+                            <button class="action-btn moments-btn" onclick="viewContactMoments()">查看暖味圈</button>
                         </div>
                         <div class="contact-info-section">
                             <h4>基本信息</h4>
@@ -1285,7 +1357,7 @@
                             </div>
                         </div>
                         <div class="contact-info-section">
-                            <h4>关联世界书 <span onclick="showWorldbookSelector()" style="cursor: pointer; font-size: 14px; color: #007aff;">+添加</span></h4>
+                            <h4>关联世界书 <span onclick="showWorldbookSelector()" style="cursor: pointer; font-size: 14px; color: #8e8e93;">+添加</span></h4>
                             <div id="worldbook-tags" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0;">
                             </div>
                         </div>
@@ -1298,7 +1370,7 @@
                 <!-- 具体聊天界面 -->
                 <div id="chat-message-tab" class="tab-content">
                     <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center; height: 44px; background-color: #2c2c2e; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 0 20px;">
-                        <div class="back-button" onclick="switchTab('chat-tab')">←</div>
+                        <div class="back-button" onclick="backToChatList()">←</div>
                         <h3 id="chat-title" style="margin: 0;"></h3>
                         <div class="menu-button" onclick="toggleChatMenu()" style="font-size: 24px; color: #fff; cursor: pointer;">⋯</div>
                     </div>
@@ -1309,9 +1381,10 @@
                     <div class="chat-container" style="flex: 1; position: relative;">
                         <div class="chat-messages" id="chat-messages" style="position: absolute; top: 0; left: 0; right: 0; bottom: 60px; overflow-y: auto; padding: 20px; gap: 15px; display: flex; flex-direction: column;">
                         </div>
-                        <div class="chat-input" style="position: absolute; bottom: 0; left: 0; right: 0; display: flex; padding: 10px 20px; background-color: #2c2c2e; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div class="chat-input" id="chat-input-container" style="position: absolute; bottom: 0; left: 0; right: 0; display: flex; align-items: center; padding: 10px 15px; background-color: #2c2c2e; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            <button id="heart-send-btn" onclick="heartBtnClick()" style="background: none; border: none; color: #999; font-size: 24px; cursor: pointer; padding: 5px; margin-right: 10px;">♥</button>
                             <input type="text" id="chat-input" placeholder="输入消息..." style="flex: 1; background-color: #3a3a3c; border: none; border-radius: 20px; padding: 10px 16px; color: #fff; font-size: 16px;">
-                            <button onclick="sendMessage()" style="background-color: #3a3a3c; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; width: 40px; height: 40px; margin-left: 10px; color: #fff; font-size: 18px; cursor: pointer;">→</button>
+                            <button id="send-btn" style="background-color: #3a3a3c; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; width: 40px; height: 40px; margin-left: 10px; color: #fff; font-size: 18px; cursor: pointer;">→</button>
                         </div>
                     </div>
                 </div>
@@ -1321,11 +1394,29 @@
                     <div class="chat-header">
                         <div class="back-button" onclick="switchTab('list-tab')">←</div>
                         <h3>暖味圈</h3>
-                    </div>
-                    <div class="moments-container">
-                        <div class="empty-moments">
-                            <p>暂无暖味圈动态</p>
+                        <div style="display: flex; gap: 15px;">
+                            <span onclick="testAndRefreshMoments()" style="cursor: pointer; font-size: 18px;">↻</span>
+                            <span onclick="showAddMomentModal()" style="cursor: pointer; font-size: 20px;">+</span>
                         </div>
+                    </div>
+                    <div id="moments-content" style="flex: 1; overflow-y: auto;">
+                        <div class="moments-header" id="moments-header" style="position: relative; height: 200px; cursor: pointer;" onclick="uploadMomentsBg()">
+                        </div>
+                        <div class="moments-container" id="moments-container">
+                            <div class="empty-moments">
+                                <p>暂无暖味圈动态</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 联系人暖味圈查看界面 -->
+                <div id="contact-moments-tab" class="tab-content">
+                    <div class="chat-header">
+                        <div class="back-button" onclick="switchTab('contact-detail-tab')">←</div>
+                        <h3 id="contact-moments-title">TA的暖味圈</h3>
+                    </div>
+                    <div class="contact-moments-view" id="contact-moments-view" style="flex: 1; overflow-y: auto;">
                     </div>
                 </div>
                 
@@ -1356,24 +1447,9 @@
                         <div class="home-section">
                             <h3>我的功能</h3>
                             <div class="function-list">
-                                <div class="function-item">
+                                <div class="function-item" onclick="openWallet()">
                                     <p>钱包</p>
-                                    <span class="arrow">›</span>
-                                </div>
-                                <div class="function-item">
-                                    <p>相册</p>
-                                    <span class="arrow">›</span>
-                                </div>
-                                <div class="function-item">
-                                    <p>收藏</p>
-                                    <span class="arrow">›</span>
-                                </div>
-                                <div class="function-item">
-                                    <p>卡包</p>
-                                    <span class="arrow">›</span>
-                                </div>
-                                <div class="function-item">
-                                    <p>设置</p>
+                                    <span id="wallet-balance-display" style="color: #8e8e93; margin-right: 5px;">¥0</span>
                                     <span class="arrow">›</span>
                                 </div>
                             </div>
@@ -1497,6 +1573,20 @@
             </div>
         </div>
         
+        <!-- 添加朋友圈弹窗 -->
+        <div id="add-moment-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="modal-content" style="background-color: #2c2c2e; padding: 20px; border-radius: 12px; width: 80%; max-width: 300px;">
+                <h3 style="margin-top: 0; text-align: center; color: #fff;">发布暖味圈</h3>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <textarea id="moment-content" rows="4" placeholder="分享你的心情..." style="width: 100%; padding: 10px; border-radius: 8px; border: none; background-color: #1c1c1e; color: #fff; box-sizing: border-box; resize: none;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="closeAddMomentModal()" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background-color: #48484a; color: #fff; cursor: pointer;">取消</button>
+                    <button onclick="saveMoment()" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background-color: #3a3a3c; color: #fff; cursor: pointer;">发布</button>
+                </div>
+            </div>
+        </div>
+        
         <!-- 论坛应用 -->
         <div class="app-container" id="forum-app">
             <div class="app-header">
@@ -1532,28 +1622,39 @@
             </div>
             <div class="app-content">
                 <div class="profile-section">
-                    <div class="profile-avatar">
-                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20portrait&image_size=square" alt="头像">
+                    <div class="profile-avatar" onclick="uploadProfileAvatar()" style="cursor: pointer;">
+                        <img id="profile-avatar-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='white' width='100' height='100'/%3E%3C/svg%3E" alt="头像">
+                        <div class="avatar-edit-overlay">编辑</div>
                     </div>
+                    <input type="file" id="profile-avatar-upload" accept="image/*" style="display: none;" onchange="saveProfileAvatar(event)">
                     <div class="profile-info">
-                        <h3>用户名</h3>
-                        <p>user@example.com</p>
+                        <h3 id="profile-real-name-display">真实姓名</h3>
+                        <p id="profile-bio-display">点击编辑个人信息</p>
                     </div>
                 </div>
                 <div class="settings-section">
                     <h3>个人信息</h3>
                     <div class="settings-item">
-                        <span>昵称</span>
-                        <input type="text" value="用户名">
+                        <span>真实姓名</span>
+                        <input type="text" id="profile-real-name" placeholder="请输入真实姓名">
                     </div>
                     <div class="settings-item">
                         <span>性别</span>
-                        <span>保密</span>
+                        <select id="profile-gender" style="background: #3a3a3c; border: none; color: #fff; padding: 5px; border-radius: 5px;">
+                            <option value="保密">保密</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
                     </div>
                     <div class="settings-item">
                         <span>生日</span>
-                        <span>2000-01-01</span>
+                        <input type="date" id="profile-birthday" style="background: #3a3a3c; border: none; color: #fff; padding: 5px; border-radius: 5px;">
                     </div>
+                    <div class="settings-item" style="flex-direction: column; align-items: flex-start;">
+                        <span style="margin-bottom: 8px;">详细信息</span>
+                        <textarea id="profile-bio" rows="4" placeholder="可以输入详细的个人信息，AI会读取这些信息" style="width: 100%; background: #3a3a3c; border: none; color: #fff; padding: 10px; border-radius: 8px; resize: none;"></textarea>
+                    </div>
+                    <button onclick="saveMyProfile()" style="width: 100%; padding: 12px; background-color: #3a3a3c; color: #fff; border: none; border-radius: 10px; margin-top: 15px; cursor: pointer;">保存</button>
                 </div>
             </div>
         </div>
@@ -1594,6 +1695,28 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 钱包应用 -->
+        <div class="app-container" id="wallet-app">
+            <div class="app-header">
+                <div class="back-button" onclick="backToProfile()">←</div>
+                <h2>钱包</h2>
+            </div>
+            <div class="app-content" style="padding: 20px;">
+                <div class="wallet-balance" id="wallet-balance" style="border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 14px; opacity: 0.9;">账户余额</p>
+                    <h2 style="margin: 10px 0; font-size: 36px;" id="wallet-amount">¥0</h2>
+                </div>
+                <div class="settings-section">
+                    <h3>设置金额</h3>
+                    <div class="settings-item">
+                        <span>金额</span>
+                        <input type="number" id="wallet-input" placeholder="输入金额" style="background: #3a3a3c; border: none; border-radius: 8px; padding: 8px 12px; color: #fff; width: 120px; text-align: right;">
+                    </div>
+                    <button onclick="saveWalletAmount()" style="width: 100%; padding: 12px; background-color: #007aff; color: #fff; border: none; border-radius: 10px; margin-top: 15px; cursor: pointer;">保存</button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script>
@@ -1615,9 +1738,37 @@
             setTimeout(() => {
                 targetApp.classList.add('active');
             }, 10);
+            
+            // 如果打开暖味应用，重置聊天状态
+            if (appName === 'chat') {
+                window.currentChatContactName = null;
+                const messagesContainer = document.getElementById('chat-messages');
+                if (messagesContainer) {
+                    messagesContainer.innerHTML = '';
+                }
+            }
+            
+            // 如果打开个人应用，加载钱包余额显示
+            if (appName === 'profile') {
+                loadWalletBalanceDisplay();
+            }
+        }
+        
+        function loadWalletBalanceDisplay() {
+            const amount = localStorage.getItem('walletAmount') || '0';
+            const displayEl = document.getElementById('wallet-balance-display');
+            if (displayEl) {
+                displayEl.textContent = '¥' + amount;
+            }
         }
         
         function backToHome() {
+            window.currentChatContactName = null;
+            // 清除聊天消息
+            const messagesContainer = document.getElementById('chat-messages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '';
+            }
             // 隐藏所有应用
             document.querySelectorAll('.app-container').forEach(app => {
                 app.classList.remove('active');
@@ -1631,6 +1782,26 @@
                 // 显示dock栏
                 document.querySelector('.dock').style.display = 'flex';
             }, 300);
+        }
+        
+        function backToChatList() {
+            window.currentChatContactName = null;
+            // 清除聊天消息
+            const messagesContainer = document.getElementById('chat-messages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '';
+            }
+            switchTab('chat-tab');
+        }
+        
+        function backToProfile() {
+            document.getElementById('wallet-app').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('wallet-app').style.display = 'none';
+            }, 300);
+            // 返回到暖味应用主页
+            openApp('chat');
+            switchTab('home-tab');
         }
         
         // 绑定应用图标点击事件
@@ -1649,13 +1820,38 @@
             });
             // 显示选中的标签页
             document.getElementById(tabId).classList.add('active');
-            // 控制底部导航栏显示/隐藏
+            
+            // 显示/隐藏底部导航栏
             const chatNav = document.querySelector('.chat-nav');
-            if (tabId === 'chat-message-tab') {
+            if (tabId === 'contact-detail-tab' || tabId === 'contact-moments-tab' || tabId === 'chat-message-tab') {
                 chatNav.style.display = 'none';
             } else {
                 chatNav.style.display = 'flex';
             }
+            
+            // 清理聊天界面中的"正在输入中..."消息
+            if (tabId === 'chat-message-tab') {
+                const messages = document.getElementById('chat-messages');
+                if (messages) {
+                    const loadingMsg = messages.querySelector('.loading-message');
+                    if (loadingMsg) {
+                        loadingMsg.remove();
+                    }
+                }
+            } else if (tabId === 'chat-tab') {
+                window.currentChatContactName = null;
+            }
+            
+            // 切换到主页时加载钱包余额显示
+            if (tabId === 'home-tab') {
+                loadWalletBalanceDisplay();
+            }
+            
+            // 切换到暖味圈时加载头部信息
+            if (tabId === 'moments-tab') {
+                renderMomentsHeader();
+            }
+            
             // 更新导航项状态
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
@@ -1704,16 +1900,19 @@
         
         // 加载特定联系人的聊天记录
         function loadChatHistoryForContact(contactName) {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            window.currentChatContactName = contactName;
+            window.lastMessageTime = 0;
+            
             const allHistory = JSON.parse(localStorage.getItem('chatHistory') || '{}');
             const messages = allHistory[contactName] || [];
-            const messagesContainer = document.getElementById('chat-messages');
             messagesContainer.innerHTML = '';
             
             messages.forEach(msg => {
-                addMessage(msg.text, msg.sender);
+                addMessage(msg.text, msg.sender, false, msg.timestamp);
             });
             
-            // 滚动到底部
             setTimeout(() => {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }, 100);
@@ -1845,6 +2044,9 @@
             
             // 刷新列表和聊天列表显示
             refreshContactDisplays();
+            
+            // 刷新暖味圈显示
+            renderMoments();
         }
         
         // 删除联系人
@@ -1912,8 +2114,8 @@
                 const descSpan = item.querySelector('.contact-desc');
                 
                 if (avatarImg && nameSpan) {
-                    const name = nameSpan.textContent;
-                    const contact = contacts.find(c => (c.remark || c.nickname) === name || c.nickname === name);
+                    const currentName = nameSpan.textContent;
+                    const contact = contacts.find(c => c.nickname === window.currentContactDetail?.nickname || (c.remark || c.nickname) === currentName);
                     if (contact) {
                         avatarImg.src = contact.avatar;
                         const displayName = contact.remark || contact.nickname;
@@ -1932,8 +2134,8 @@
                 const msgSpan = item.querySelector('.chat-list-message');
                 
                 if (avatarImg && nameSpan) {
-                    const name = nameSpan.textContent;
-                    const contact = contacts.find(c => (c.remark || c.nickname) === name || c.nickname === name);
+                    const currentName = nameSpan.textContent;
+                    const contact = contacts.find(c => c.nickname === window.currentContactDetail?.nickname || (c.remark || c.nickname) === currentName);
                     if (contact) {
                         avatarImg.src = contact.avatar;
                         const displayName = contact.remark || contact.nickname;
@@ -1973,6 +2175,100 @@
             alert('保存成功！');
         }
         
+        // 保存个人应用信息（主角信息）
+        function saveMyProfile() {
+            const realName = document.getElementById('profile-real-name').value;
+            const gender = document.getElementById('profile-gender').value;
+            const birthday = document.getElementById('profile-birthday').value;
+            const bio = document.getElementById('profile-bio').value;
+            const avatar = document.getElementById('profile-avatar-img').src;
+            
+            localStorage.setItem('myRealName', realName);
+            localStorage.setItem('myGender', gender);
+            localStorage.setItem('myBirthday', birthday);
+            localStorage.setItem('myBio', bio);
+            localStorage.setItem('myAvatar', avatar);
+            
+            // 更新显示
+            if (realName) {
+                document.getElementById('profile-real-name-display').textContent = realName;
+            }
+            if (bio) {
+                document.getElementById('profile-bio-display').textContent = bio.substring(0, 30) + (bio.length > 30 ? '...' : '');
+            }
+            
+            alert('保存成功！');
+        }
+        
+        // 加载个人应用信息
+        function loadMyProfile() {
+            const realName = localStorage.getItem('myRealName');
+            const gender = localStorage.getItem('myGender');
+            const birthday = localStorage.getItem('myBirthday');
+            const bio = localStorage.getItem('myBio');
+            const avatar = localStorage.getItem('myAvatar');
+            
+            if (realName) {
+                document.getElementById('profile-real-name').value = realName;
+                document.getElementById('profile-real-name-display').textContent = realName;
+            }
+            if (gender) {
+                document.getElementById('profile-gender').value = gender;
+            }
+            if (birthday) {
+                document.getElementById('profile-birthday').value = birthday;
+            }
+            if (bio) {
+                document.getElementById('profile-bio').value = bio;
+                document.getElementById('profile-bio-display').textContent = bio.substring(0, 30) + (bio.length > 30 ? '...' : '');
+            }
+            if (avatar) {
+                document.getElementById('profile-avatar-img').src = avatar;
+            }
+        }
+        
+        // 上传个人头像
+        function uploadProfileAvatar() {
+            document.getElementById('profile-avatar-upload').click();
+        }
+        
+        // 保存个人头像
+        function saveProfileAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    document.getElementById('profile-avatar-img').src = imageData;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // 获取个人信息的系统提示
+        function getMyProfilePrompt() {
+            let prompt = '';
+            const realName = localStorage.getItem('myRealName');
+            const gender = localStorage.getItem('myGender');
+            const birthday = localStorage.getItem('myBirthday');
+            const bio = localStorage.getItem('myBio');
+            
+            if (realName) {
+                prompt += '我的真实姓名是：' + realName + '\n';
+            }
+            if (gender) {
+                prompt += '我的性别是：' + gender + '\n';
+            }
+            if (birthday) {
+                prompt += '我的生日是：' + birthday + '\n';
+            }
+            if (bio) {
+                prompt += '我的详细信息：' + bio + '\n';
+            }
+            
+            return prompt;
+        }
+        
         // 加载个人信息
         function loadProfile() {
             const username = localStorage.getItem('profileUsername');
@@ -1993,12 +2289,15 @@
         // 页面加载时加载个人信息
         window.onload = function() {
             loadProfile();
+            loadMyProfile();
             loadChatHistory();
             loadSettings();
             loadIcons();
             loadContacts();
             loadWorldbooks();
             loadScreenAdapt();
+            loadWalletBalanceDisplay();
+            renderMoments();
         };
         
         // 保存设置到本地存储
@@ -2402,7 +2701,7 @@
             selectedIndices.forEach(idx => {
                 if (worldbooks[idx]) {
                     const tag = document.createElement('span');
-                    tag.style.cssText = 'background-color: #007aff; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px;';
+                    tag.style.cssText = 'background-color: #3a3a3c; color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px;';
                     tag.textContent = worldbooks[idx].title;
                     tagsContainer.appendChild(tag);
                 }
@@ -2440,6 +2739,12 @@
         function getSystemPrompt() {
             const contact = window.currentChatContact;
             let prompt = '';
+            
+            // 添加用户（我）的个人信息
+            const myProfile = getMyProfilePrompt();
+            if (myProfile) {
+                prompt += '【用户（你）的基本信息】\n' + myProfile + '\n\n';
+            }
             
             // 添加联系人的人设信息
             if (contact) {
@@ -2597,6 +2902,13 @@
                     header.style.backgroundColor = '#2c2c2e';
                     header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.1)';
                 });
+                document.querySelectorAll('.wallet-balance').forEach(el => {
+                    el.style.backgroundColor = '#1c1c1e';
+                });
+                document.querySelectorAll('.user-message').forEach(msg => {
+                    msg.style.backgroundColor = '#3a3a3c';
+                    msg.style.color = '#fff';
+                });
                 document.querySelectorAll('.menu-button').forEach(btn => {
                     btn.style.color = '#fff';
                 });
@@ -2617,6 +2929,15 @@
                 document.querySelector('.profile-signature').style.color = '#fff';
                 document.querySelector('.dock').style.backgroundColor = 'rgba(30, 30, 32, 0.8)';
                 document.querySelector('.dock').style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
+                
+                document.querySelectorAll('.msg-checkbox').forEach(cb => {
+                    cb.style.borderColor = '#999';
+                    cb.style.background = 'transparent';
+                });
+                document.querySelectorAll('.msg-checkbox:checked').forEach(cb => {
+                    cb.style.background = '#333';
+                    cb.style.borderColor = '#333';
+                });
             } else {
                 document.body.style.backgroundColor = '#f5f5f7';
                 document.body.style.color = '#000';
@@ -2673,6 +2994,14 @@
                     header.style.backgroundColor = '#fff';
                     header.style.borderBottom = '1px solid #e0e0e0';
                 });
+                document.querySelectorAll('.wallet-balance').forEach(el => {
+                    el.style.backgroundColor = '#f2f2f7';
+                    el.style.color = '#000';
+                });
+                document.querySelectorAll('.user-message').forEach(msg => {
+                    msg.style.backgroundColor = '#fff';
+                    msg.style.color = '#000';
+                });
                 document.querySelectorAll('.menu-button').forEach(btn => {
                     btn.style.color = '#000';
                 });
@@ -2696,6 +3025,15 @@
                 document.querySelector('.save-section button').style.border = '1px solid #e0e0e0';
                 document.querySelector('.dock').style.backgroundColor = 'rgba(245, 245, 247, 0.8)';
                 document.querySelector('.dock').style.borderTop = '1px solid #e0e0e0';
+                
+                document.querySelectorAll('.msg-checkbox').forEach(cb => {
+                    cb.style.borderColor = '#999';
+                    cb.style.background = 'transparent';
+                });
+                document.querySelectorAll('.msg-checkbox:checked').forEach(cb => {
+                    cb.style.background = '#333';
+                    cb.style.borderColor = '#333';
+                });
             }
         }
         
@@ -2721,25 +3059,52 @@
         });
         
         // 聊天功能
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const message = input.value.trim();
+        function heartBtnClick() {
+            const chatName = document.getElementById('chat-title').textContent;
+            if (!chatName) return;
             
-            if (message) {
-                // 检查API配置
-                if (!checkAPIConfig()) {
-                    alert('API配置不完整，请先在设置中配置API密钥和地址');
-                    return;
-                }
-                
-                // 添加用户消息
-                addMessage(message, 'user');
-                // 清空输入框
-                input.value = '';
-                // 调用AI API获取回复
-                getAIResponse(message);
+            const chatHistory = JSON.parse(localStorage.getItem('chat_' + chatName) || '[]');
+            
+            const apiKey = localStorage.getItem('appSettings') ? JSON.parse(localStorage.getItem('appSettings')).apiKey : '';
+            const apiUrl = localStorage.getItem('appSettings') ? JSON.parse(localStorage.getItem('appSettings')).apiUrl : '';
+            
+            if (!apiKey || !apiUrl) {
+                return;
             }
+            
+            const lastMessages = chatHistory.slice(-20);
+            let contextText = '';
+            lastMessages.forEach(msg => {
+                const sender = msg.sender === 'user' ? '我' : '对方';
+                contextText += sender + ': ' + msg.text + '\n';
+            });
+            
+            const fullMessage = contextText + '\n请根据以上对话回复我';
+            getAIResponse(fullMessage);
         }
+        
+        function sendMessage(triggerAI = false) {
+            const input = document.querySelector('#chat-message-tab #chat-input') || document.getElementById('chat-input');
+            if (!input) return;
+            
+            const message = input.value.trim();
+            if (!message) return;
+            
+            input.value = '';
+            addMessage(message, 'user');
+        }
+        
+        document.getElementById('chat-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(false);
+            }
+        });
+        
+        // 发送按钮点击事件 - 不触发AI回复
+        document.getElementById('send-btn').addEventListener('click', function() {
+            sendMessage(false);
+        });
         
         // 切换聊天菜单
         // 添加联系人相关函数
@@ -2999,8 +3364,9 @@
                 
                 // 移除加载状态消息
                 const messages = document.getElementById('chat-messages');
-                if (messages.lastChild && messages.lastChild.textContent === '正在输入中...') {
-                    messages.removeChild(messages.lastChild);
+                const loadingMsg = messages.querySelector('.loading-message');
+                if (loadingMsg) {
+                    loadingMsg.remove();
                 }
                 
                 console.log('API响应状态:', response.status, response.statusText);
@@ -3037,13 +3403,22 @@
                 
                 const aiMessage = data.choices[0].message.content;
                 addMessage(aiMessage, 'ai');
+                
+                // AI回复后可能去回复朋友圈
+                const currentContact = window.currentChatContact;
+                console.log('=== 聊天结束，检查是否回复朋友圈 ===');
+                console.log('当前联系人:', currentContact);
+                setTimeout(() => {
+                    aiReplyToMomentsAfterChat(currentContact);
+                }, 1500);
             } catch (error) {
                 console.error('API调用错误:', error);
                 
                 // 移除加载状态消息
                 const messages = document.getElementById('chat-messages');
-                if (messages.lastChild && messages.lastChild.textContent === '正在输入中...') {
-                    messages.removeChild(messages.lastChild);
+                const loadingMsg = messages.querySelector('.loading-message');
+                if (loadingMsg) {
+                    loadingMsg.remove();
                 }
                 
                 // 网络错误处理
@@ -3056,19 +3431,165 @@
             }
         }
         
-        function addMessage(text, sender) {
+        function addMessage(text, sender, shouldSave = true) {
             const messagesContainer = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}-message`;
-            messageDiv.textContent = text;
+            if (text === '正在输入中...') {
+                messageDiv.classList.add('loading-message');
+            }
+            
+            const now = new Date();
+            const showTime = !window.lastMessageTime || (now.getTime() - window.lastMessageTime > 5 * 60 * 1000);
+            window.lastMessageTime = now.getTime();
+            
+            let timeHtml = '';
+            
+            let userAvatar = localStorage.getItem('myAvatar') || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg==';
+            let aiAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzhhOGU5MyIvPjwvc3ZnPg==';
+            
+            if (window.currentChatContact && window.currentChatContact.avatar) {
+                aiAvatar = window.currentChatContact.avatar;
+            }
+            
+            const isUser = sender === 'user';
+            
+            let contentHtml;
+            if (isUser) {
+                contentHtml = `
+                    <div class="message-content" style="background-color: #fff; color: #000;">${text}</div>
+                    <img src="${userAvatar}" class="msg-avatar">
+                `;
+            } else {
+                contentHtml = `
+                    <img src="${aiAvatar}" class="msg-avatar">
+                    <div class="message-content" style="background-color: #3a3a3c; color: #fff;">${text}</div>
+                `;
+            }
+            
+            const alignStyle = isUser ? 'align-self: flex-end;' : 'align-self: flex-start;';
+            
+            messageDiv.innerHTML = `
+                <div class="message-checkbox" style="display: none; position: absolute; left: -25px; top: 50%; transform: translateY(-50%);">
+                    <input type="checkbox" class="msg-checkbox">
+                </div>
+                <div class="message-row" style="display: flex; ${alignStyle}">
+                    ${contentHtml}
+                </div>
+            `;
+            
+            if (showTime) {
+                const timeDiv = document.createElement('div');
+                timeDiv.style.cssText = 'text-align: center; font-size: 12px; color: #999; margin: 10px 0; width: 100%;';
+                timeDiv.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                messagesContainer.appendChild(timeDiv);
+            }
+            
             messagesContainer.appendChild(messageDiv);
-            // 滚动到底部
+            
+            messageDiv.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                enterMessageSelectMode();
+                const checkbox = messageDiv.querySelector('.msg-checkbox');
+                if (checkbox) checkbox.checked = true;
+                updateSelectedCount();
+            });
+            
+            let longPressTimer;
+            messageDiv.addEventListener('touchstart', function(e) {
+                console.log('touchstart triggered');
+                longPressTimer = setTimeout(function() {
+                    console.log('Long press detected, entering select mode');
+                    e.preventDefault();
+                    enterMessageSelectMode();
+                    const checkbox = messageDiv.querySelector('.msg-checkbox');
+                    if (checkbox) checkbox.checked = true;
+                    updateSelectedCount();
+                }, 500);
+            });
+            messageDiv.addEventListener('touchend', function() {
+                clearTimeout(longPressTimer);
+            });
+            messageDiv.addEventListener('touchmove', function() {
+                clearTimeout(longPressTimer);
+            });
+            
+            messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
-            // 保存聊天记录到本地存储（按联系人）
             const chatName = document.getElementById('chat-title').textContent;
-            if (chatName) {
+            if (shouldSave && chatName && text !== '正在输入中...') {
                 saveChatHistoryForContact(chatName, text, sender);
+            }
+        }
+        
+        let messageSelectMode = false;
+        let selectedMessages = [];
+        let lastMessageTime = 0;
+        
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+        
+        function exitMessageSelectMode() {
+            messageSelectMode = false;
+            selectedMessages = [];
+            
+            document.querySelectorAll('.message').forEach(msg => {
+                const checkboxDiv = msg.querySelector('.message-checkbox');
+                const checkbox = msg.querySelector('.msg-checkbox');
+                if (checkboxDiv) {
+                    checkboxDiv.style.display = 'none';
+                }
+                if (checkbox) {
+                    checkbox.checked = false;
+                }
+            });
+            
+            const toolbar = document.getElementById('message-delete-toolbar');
+            if (toolbar) toolbar.remove();
+        }
+        
+        function cancelSelectMode() {
+            exitMessageSelectMode();
+        }
+        
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.msg-checkbox:checked');
+            const count = checkboxes.length;
+            const countSpan = document.getElementById('selected-count');
+            if (countSpan) countSpan.textContent = `已选择 ${count} 条`;
+        }
+        
+        function deleteSelectedMessages() {
+            const checkboxes = document.querySelectorAll('.msg-checkbox:checked');
+            if (checkboxes.length === 0) return;
+            
+            if (!confirm(`确定删除选中的 ${checkboxes.length} 条消息吗？`)) return;
+            
+            checkboxes.forEach(cb => {
+                const messageDiv = cb.closest('.message');
+                if (messageDiv) {
+                    const content = messageDiv.querySelector('.message-content').textContent;
+                    const chatName = document.getElementById('chat-title').textContent;
+                    if (chatName) {
+                        removeMessageFromHistory(chatName, content);
+                    }
+                    messageDiv.remove();
+                }
+            });
+            
+            exitMessageSelectMode();
+        }
+        
+        function removeMessageFromHistory(chatName, content) {
+            const allHistory = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+            if (allHistory[chatName]) {
+                allHistory[chatName] = allHistory[chatName].filter(msg => msg.text !== content);
+                localStorage.setItem('chatHistory', JSON.stringify(allHistory));
             }
         }
         
@@ -3096,11 +3617,816 @@
                     messagesContainer.innerHTML = '';
                     
                     messages.forEach(msg => {
-                        addMessage(msg.text, msg.sender);
+                        addMessage(msg.text, msg.sender, false);
                     });
                 } catch (e) {
                     console.error('加载聊天记录失败:', e);
                 }
+            }
+        }
+        
+        // 钱包功能
+        function openWallet() {
+            openApp('wallet');
+            loadWalletAmount();
+            applyWalletStyle();
+        }
+        
+        function applyWalletStyle() {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            const walletBalance = document.getElementById('wallet-balance');
+            if (walletBalance) {
+                walletBalance.style.backgroundColor = isDarkMode ? '#1c1c1e' : '#f2f2f7';
+                walletBalance.style.color = isDarkMode ? '#fff' : '#000';
+            }
+        }
+        
+        function loadWalletAmount() {
+            const amount = localStorage.getItem('walletAmount') || '0';
+            document.getElementById('wallet-amount').textContent = '¥' + amount;
+            document.getElementById('wallet-input').value = amount;
+            document.getElementById('wallet-balance-display').textContent = '¥' + amount;
+        }
+        
+        function saveWalletAmount() {
+            const amount = document.getElementById('wallet-input').value || '0';
+            localStorage.setItem('walletAmount', amount);
+            document.getElementById('wallet-amount').textContent = '¥' + amount;
+            document.getElementById('wallet-balance-display').textContent = '¥' + amount;
+            alert('金额已保存: ¥' + amount);
+        }
+        
+        // 暖味圈功能
+        function showAddMomentModal() {
+            document.getElementById('add-moment-modal').style.display = 'flex';
+        }
+        
+        function closeAddMomentModal() {
+            document.getElementById('add-moment-modal').style.display = 'none';
+            document.getElementById('moment-content').value = '';
+        }
+        
+        function saveMoment() {
+            const content = document.getElementById('moment-content').value.trim();
+            if (!content) {
+                alert('请输入内容！');
+                return;
+            }
+            
+            const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+            const myProfile = localStorage.getItem('myAvatar') || '';
+            const myName = localStorage.getItem('profileUsername') || localStorage.getItem('myRealName') || '我';
+            
+            moments.unshift({
+                name: myName,
+                avatar: myProfile,
+                content: content,
+                time: new Date().toLocaleString('zh-CN'),
+                type: 'user',
+                likes: [],
+                comments: []
+            });
+            localStorage.setItem('moments', JSON.stringify(moments));
+            
+            closeAddMomentModal();
+            renderMoments();
+            
+            // 发布后AI可能点赞评论
+            setTimeout(() => {
+                aiReplyToMoment();
+            }, 1000);
+        }
+        
+        function renderMoments() {
+            const container = document.getElementById('moments-container');
+            const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            const bgColor = isDarkMode ? '#1a1a1a' : '#f5f5f5';
+            const textColor = isDarkMode ? '#fff' : '#000';
+            const subTextColor = isDarkMode ? '#8e8e93' : '#8e8e93';
+            const cardBg = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+            
+            if (moments.length === 0) {
+                container.innerHTML = '<div class="empty-moments"><p>暂无暖味圈动态</p></div>';
+                return;
+            }
+            
+            container.innerHTML = moments.map((moment, index) => {
+                const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+                let displayName = moment.displayName || moment.name;
+                if (moment.type === 'ai') {
+                    const contact = contacts.find(c => c.nickname === moment.name);
+                    if (contact) {
+                        displayName = contact.remark || contact.nickname;
+                    }
+                }
+                return `
+                <div class="moment-item" style="padding: 12px; margin-bottom: 15px; background: ${cardBg}; border-radius: 8px; position: relative;">
+                    <div style="position: absolute; top: 10px; right: 10px;">
+                        <span onclick="deleteMoment(${index})" style="cursor:pointer; color: ${subTextColor}; font-size: 18px;">✕</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                        <img src="${moment.avatar || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'50\' height=\'50\'%3E%3Crect fill=\'%23ccc\' width=\'50\' height=\'50\'/%3E%3C/svg%3E'}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+                        <div>
+                            <div style="font-weight: bold; color: ${textColor};">${displayName}</div>
+                            <div style="font-size: 12px; color: ${subTextColor};">${moment.time}</div>
+                        </div>
+                    </div>
+                    <div style="color: ${textColor}; margin-bottom: 8px; line-height: 1.5;">${moment.content}</div>
+                    <div style="display: flex; gap: 15px; font-size: 13px; color: ${subTextColor}; margin-bottom: 8px;">
+                        <span onclick="likeMoment(${index})" style="cursor:pointer;">♥ ${moment.likes?.length || 0}</span>
+                        <span onclick="commentMoment(${index})" style="cursor:pointer;">💬 ${moment.comments?.length || 0}</span>
+                    </div>
+                    ${moment.comments && moment.comments.length > 0 ? `
+                        <div style="background: ${isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)'}; padding: 8px; border-radius: 6px; margin-top: 8px;">
+                            ${moment.comments.map(c => {
+                                let commentDisplayName = c.name;
+                                if (c.isReply) {
+                                    const cContact = contacts.find(cont => cont.nickname === c.name);
+                                    commentDisplayName = cContact ? (cContact.remark || cContact.nickname) : c.name;
+                                }
+                                return `
+                                <div style="margin-bottom: 5px; font-size: 12px; color: ${textColor};">
+                                    ${c.isReadNoReply 
+                                        ? `<span style="font-weight:bold;">${commentDisplayName}</span> <span style="color: ${subTextColor};">${c.content}</span>` 
+                                        : c.isReply 
+                                            ? `<span style="font-weight:bold;">${commentDisplayName}回复了${c.replyTo || '我'}</span> ${c.content}`
+                                            : `<span style="font-weight:bold;">${commentDisplayName}:</span> ${c.content}`}
+                                </div>
+                            `}).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `}).join('');
+        }
+        
+        function likeMoment(index) {
+            const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+            if (!moments[index].likes) moments[index].likes = [];
+            
+            const myName = localStorage.getItem('profileUsername') || localStorage.getItem('myRealName') || '我';
+            const likeIndex = moments[index].likes.indexOf(myName);
+            if (likeIndex === -1) {
+                moments[index].likes.push(myName);
+            } else {
+                moments[index].likes.splice(likeIndex, 1);
+            }
+            localStorage.setItem('moments', JSON.stringify(moments));
+            renderMoments();
+        }
+        
+        function commentMoment(index) {
+            const comment = prompt('请输入评论：');
+            if (comment) {
+                const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+                if (!moments[index].comments) moments[index].comments = [];
+                
+                const myName = localStorage.getItem('profileUsername') || localStorage.getItem('myRealName') || '我';
+                moments[index].comments.push({ name: myName, content: comment });
+                localStorage.setItem('moments', JSON.stringify(moments));
+                renderMoments();
+                
+                // 触发AI回复
+                setTimeout(() => aiReplyToUserComment(moments[index], index), 500);
+            }
+        }
+        
+        function deleteMoment(index) {
+            if (confirm('确定删除这条动态吗？')) {
+                const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+                moments.splice(index, 1);
+                localStorage.setItem('moments', JSON.stringify(moments));
+                renderMoments();
+            }
+        }
+        
+        function viewContactMoments() {
+            if (!window.currentContactDetail) return;
+            
+            const contact = window.currentContactDetail;
+            document.getElementById('contact-moments-title').textContent = contact.nickname + '的暖味圈';
+            
+            const container = document.getElementById('contact-moments-view');
+            const allMoments = JSON.parse(localStorage.getItem('moments') || '[]');
+            const contactMoments = allMoments.filter(m => m.name === contact.nickname);
+            
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            const bgColor = isDarkMode ? '#1a1a1a' : '#f5f5f5';
+            const textColor = isDarkMode ? '#fff' : '#000';
+            const subTextColor = isDarkMode ? '#8e8e93' : '#8e8e93';
+            const cardBg = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+            
+            const contactBgKey = 'contactMomentsBg_' + contact.nickname;
+            const backgroundImage = localStorage.getItem(contactBgKey) || localStorage.getItem('wallpaper') || '';
+            const bgStyle = backgroundImage ? `background-image: url('${backgroundImage}'); background-size: cover; background-position: center;` : `background: linear-gradient(180deg, ${isDarkMode ? '#2c2c2e' : '#ccc'} 0%, ${isDarkMode ? '#1a1a1a' : '#fff'} 100%);`;
+            
+            if (contactMoments.length === 0) {
+                container.innerHTML = `
+                    <div style="position: relative; height: 200px; ${bgStyle}" onclick="uploadContactMomentsBg('${contact.nickname}')">
+                        <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; border-radius: 15px; font-size: 12px;">更换背景</div>
+                        <div style="position: absolute; bottom: 10px; left: 15px; display: flex; align-items: flex-end;">
+                            <img src="${contact.avatar}" style="width: 70px; height: 70px; border-radius: 50%; border: 3px solid ${bgColor};">
+                            <div style="margin-left: 10px; margin-bottom: 5px;">
+                                <div style="font-weight: bold; color: ${textColor}; font-size: 18px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${contact.nickname}</div>
+                                <div style="font-size: 13px; color: ${subTextColor}; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${contact.bio || '暂无签名'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 20px; background: ${bgColor}; min-height: calc(100vh - 200px);">
+                        <div style="text-align: center; color: ${subTextColor}; margin-top: 30px;">
+                            <p style="font-size: 16px;">TA还没有发过暖味圈</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="position: relative; height: 200px; ${bgStyle}" onclick="uploadContactMomentsBg('${contact.nickname}')">
+                        <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; border-radius: 15px; font-size: 12px;">更换背景</div>
+                        <div style="position: absolute; bottom: 10px; left: 15px; display: flex; align-items: flex-end;">
+                            <img src="${contact.avatar}" style="width: 70px; height: 70px; border-radius: 50%; border: 3px solid ${bgColor};">
+                            <div style="margin-left: 10px; margin-bottom: 5px;">
+                                <div style="font-weight: bold; color: ${textColor}; font-size: 18px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${contact.nickname}</div>
+                                <div style="font-size: 13px; color: ${subTextColor}; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${contact.bio || '暂无签名'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 15px; background: ${bgColor}; min-height: calc(100vh - 200px); overflow-y: auto;">
+                        ${contactMoments.map((moment, idx) => `
+                            <div style="padding: 12px; margin-bottom: 15px; background: ${cardBg}; border-radius: 8px;">
+                                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <img src="${moment.avatar || ''}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+                                    <div>
+                                        <div style="font-weight: bold; color: ${textColor};">${moment.name}</div>
+                                        <div style="font-size: 11px; color: ${subTextColor};">${moment.time}</div>
+                                    </div>
+                                </div>
+                                <div style="color: ${textColor}; margin-bottom: 8px; line-height: 1.5;">${moment.content}</div>
+                                <div style="display: flex; gap: 15px; font-size: 13px; color: ${subTextColor};">
+                                    <span>♥ ${moment.likes?.length || 0}</span>
+                                    <span>💬 ${moment.comments?.length || 0}</span>
+                                </div>
+                                ${moment.comments && moment.comments.length > 0 ? `
+                                    <div style="background: ${isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)'}; padding: 8px; border-radius: 6px; margin-top: 8px;">
+                                        ${moment.comments.map(c => `
+                                            <div style="margin-bottom: 5px; font-size: 12px; color: ${textColor};">
+                                                ${c.isReply ? `<span style="font-weight:bold;">${c.name}回复了${c.replyTo || '我'}</span>` : `<span style="font-weight:bold;">${c.name}:</span>`} ${c.content}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            switchTab('contact-moments-tab');
+        }
+        
+        function uploadContactMomentsBg(nickname) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imageData = event.target.result;
+                        localStorage.setItem('contactMomentsBg_' + nickname, imageData);
+                        viewContactMoments();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+        
+        function uploadMomentsBg() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imageData = event.target.result;
+                        localStorage.setItem('momentsBg', imageData);
+                        renderMomentsHeader();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+        
+        function renderMomentsHeader() {
+            const header = document.getElementById('moments-header');
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            const bgColor = isDarkMode ? '#1a1a1a' : '#f5f5f5';
+            const textColor = isDarkMode ? '#fff' : '#000';
+            const subTextColor = isDarkMode ? '#8e8e93' : '#8e8e93';
+            
+            const backgroundImage = localStorage.getItem('momentsBg') || localStorage.getItem('wallpaper') || '';
+            const bgStyle = backgroundImage ? `background-image: url('${backgroundImage}');` : `background: linear-gradient(180deg, ${isDarkMode ? '#2c2c2e' : '#ccc'} 0%, ${isDarkMode ? '#1a1a1a' : '#fff'} 100%);`;
+            
+            const myAvatar = localStorage.getItem('profileAvatar') || localStorage.getItem('myAvatar') || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23ffffff'/%3E%3C/svg%3E";
+            const myName = localStorage.getItem('profileUsername') || localStorage.getItem('myRealName') || '我';
+            const myBio = localStorage.getItem('profileSignature') || '这个人很暖...';
+            
+            header.style.cssText = `position: relative; height: 200px; cursor: pointer; ${bgStyle} background-size: cover; background-position: center;`;
+            header.innerHTML = `
+                <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: #fff; padding: 5px 10px; border-radius: 15px; font-size: 12px;">更换背景</div>
+                <div style="position: absolute; bottom: 10px; left: 15px; display: flex; align-items: flex-end;">
+                    <img src="${myAvatar}" style="width: 70px; height: 70px; border-radius: 50%; border: 3px solid ${bgColor};">
+                    <div style="margin-left: 10px; margin-bottom: 5px;">
+                        <div style="font-weight: bold; color: ${textColor}; font-size: 18px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${myName}</div>
+                        <div style="font-size: 13px; color: ${subTextColor}; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${myBio}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function aiReplyToUserComment(moment, index) {
+            const savedSettings = localStorage.getItem('appSettings');
+            if (!savedSettings) return;
+            
+            const settings = JSON.parse(savedSettings);
+            if (!settings.apiKey) return;
+            
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            if (contacts.length === 0) return;
+            
+            // 让所有AI都有机会评论
+            for (const contact of contacts) {
+                await generateCommentForMoment(contact, moment, index);
+                await new Promise(r => setTimeout(r, 300));
+            }
+            
+            renderMoments();
+        }
+        
+        async function generateCommentForMoment(contact, moment, momentIndex) {
+            const savedSettings = JSON.parse(localStorage.getItem('appSettings'));
+            const apiKey = savedSettings.apiKey;
+            let apiUrl = savedSettings.apiUrl || 'https://api.openai.com/v1/chat/completions';
+            if (!apiUrl.endsWith('/chat/completions')) {
+                apiUrl = apiUrl + '/chat/completions';
+            }
+            const model = savedSettings.apiModel || 'gpt-3.5-turbo';
+            
+            let worldbookContent = '';
+            if (contact.worldbooks && contact.worldbooks.length > 0) {
+                const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+                worldbookContent = contact.worldbooks.map(idx => worldbooks[idx]?.content).filter(Boolean).join('\n');
+            }
+            
+            let prompt = `你是"${contact.nickname}"。`;
+            if (contact.bio) prompt += `\n${contact.bio}`;
+            if (worldbookContent) prompt += `\n${worldbookContent}`;
+            
+            const myName = localStorage.getItem('profileUsername') || localStorage.getItem('myRealName') || '我';
+            prompt += `\n\n你在暖味圈看到好友"${moment.name}"发布了动态：${moment.content}`;
+            prompt += `\n\n用户"${myName}"评论了：${moment.comments[moment.comments.length - 1].content}`;
+            prompt += `\n\n请根据你的人设决定是否回复这条评论。`;
+            prompt += `\n\n直接输出JSON格式：{"reply": true, "content": "回复内容"} 或 {"reply": false}`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: prompt },
+                            { role: 'user', content: '请回复评论' }
+                        ],
+                        temperature: 0.8
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const resultText = data.choices[0].message.content.trim();
+                    
+                    try {
+                        const result = JSON.parse(resultText);
+                        if (result.reply && result.content) {
+                            const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+                            if (moments[momentIndex]) {
+                                if (!moments[momentIndex].comments) moments[momentIndex].comments = [];
+                                moments[momentIndex].comments.push({ name: contact.nickname, content: result.content, isReply: true, replyTo: myName });
+                                localStorage.setItem('moments', JSON.stringify(moments));
+                            }
+                        }
+                    } catch (e) {
+                        const match = resultText.match(/\{[\s\S]*\}/);
+                        if (match) {
+                            try {
+                                const result = JSON.parse(match[0]);
+                                if (result.reply && result.content) {
+                                    const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+                                    if (moments[momentIndex]) {
+                                        if (!moments[momentIndex].comments) moments[momentIndex].comments = [];
+                                        moments[momentIndex].comments.push({ name: contact.nickname, content: result.content, isReply: true, replyTo: myName });
+                                        localStorage.setItem('moments', JSON.stringify(moments));
+                                    }
+                                }
+                            } catch (e2) {}
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+        
+        async function refreshMoments() {
+            const container = document.getElementById('moments-container');
+            
+            const savedSettings = localStorage.getItem('appSettings');
+            const settings = savedSettings ? JSON.parse(savedSettings) : null;
+            const hasApi = settings && settings.apiKey;
+            
+            const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+            if (moments.length > 0) {
+                renderMoments();
+            } else {
+                container.innerHTML = '<div class="empty-moments"><p>暂无暖味圈动态</p></div>';
+            }
+            
+            if (!hasApi) {
+                return;
+            }
+            
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            if (contacts.length === 0) {
+                return;
+            }
+            
+            container.innerHTML = '<div class="empty-moments"><p>正在请求朋友们发动态...</p></div>';
+            
+            for (const contact of contacts) {
+                await generateAIMoment(contact);
+                await new Promise(r => setTimeout(r, 500));
+            }
+            
+            await new Promise(r => setTimeout(r, 1000));
+            
+            const updatedMoments = JSON.parse(localStorage.getItem('moments') || '[]');
+            if (updatedMoments.length === 0) {
+                container.innerHTML = '<div class="empty-moments"><p>现在还没有朋友发暖味圈哦~</p></div>';
+            } else {
+                renderMoments();
+            }
+        }
+        
+        async function generateAIMoment(contact) {
+            const savedSettings = JSON.parse(localStorage.getItem('appSettings'));
+            if (!savedSettings) return false;
+            
+            const apiKey = savedSettings.apiKey;
+            let apiUrl = savedSettings.apiUrl || 'https://api.openai.com/v1/chat/completions';
+            if (!apiUrl.endsWith('/chat/completions')) {
+                apiUrl = apiUrl + '/chat/completions';
+            }
+            const model = savedSettings.apiModel || 'gpt-3.5-turbo';
+            
+            let worldbookContent = '';
+            if (contact.worldbooks && contact.worldbooks.length > 0) {
+                const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+                worldbookContent = contact.worldbooks.map(idx => worldbooks[idx]?.content).filter(Boolean).join('\n\n');
+            }
+            
+            const chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+            const messages = chatHistory[contact.nickname] || [];
+            let chatText = '';
+            if (messages.length > 0) {
+                chatText = messages.slice(-15).map(m => 
+                    `${m.sender === 'user' ? '用户' : contact.nickname}: ${m.text}`
+                ).join('\n');
+            }
+            
+            let prompt = `你是"${contact.nickname}"。`;
+            if (contact.bio) prompt += `\n${contact.bio}`;
+            if (worldbookContent) prompt += `\n\n【世界书设定】\n${worldbookContent}`;
+            if (chatText) prompt += `\n\n【与用户的聊天记录】\n${chatText}`;
+            
+            prompt += `\n\n你是微信朋友圈（暖味圈）的用户。请根据以上信息决定是否要发布一条朋友圈动态。`;
+            prompt += `\n\n直接输出JSON格式，不要其他文字：\n{"publish": true, "content": "动态内容"} 或 {"publish": false}`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: prompt },
+                            { role: 'user', content: '请决定是否发朋友圈' }
+                        ],
+                        temperature: 0.8
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const resultText = data.choices[0].message.content.trim();
+                    
+                    try {
+                        const result = JSON.parse(resultText);
+                        if (result.publish && result.content) {
+                            const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+                            const displayName = contact.remark || contact.nickname;
+                            moments.unshift({
+                                name: contact.nickname,
+                                displayName: displayName,
+                                avatar: contact.avatar,
+                                content: result.content,
+                                time: new Date().toLocaleString('zh-CN'),
+                                type: 'ai',
+                                likes: [],
+                                comments: []
+                            });
+                            localStorage.setItem('moments', JSON.stringify(moments));
+                            return true;
+                        }
+                    } catch (e) {
+                        const match = resultText.match(/\{[\s\S]*\}/);
+                        if (match) {
+                            try {
+                                const result = JSON.parse(match[0]);
+                                if (result.publish && result.content) {
+                                    const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+                                    const displayName = contact.remark || contact.nickname;
+                                    moments.unshift({
+                                        name: contact.nickname,
+                                        displayName: displayName,
+                                        avatar: contact.avatar,
+                                        content: result.content,
+                                        time: new Date().toLocaleString('zh-CN'),
+                                        type: 'ai',
+                                        likes: [],
+                                        comments: []
+                                    });
+                                    localStorage.setItem('moments', JSON.stringify(moments));
+                                    return true;
+                                }
+                            } catch (e2) {}
+                        }
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+        
+        async function testAndRefreshMoments() {
+            await refreshMoments();
+        }
+        
+        async function aiReplyToMoment() {
+            const savedSettings = localStorage.getItem('appSettings');
+            if (!savedSettings) return;
+            
+            const settings = JSON.parse(savedSettings);
+            if (!settings.apiKey) return;
+            
+            const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+            const contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+            
+            if (moments.length === 0 || contacts.length === 0) return;
+            
+            // 随机选择1-2个AI回复
+            const numReplies = Math.floor(Math.random() * 2) + 1;
+            for (let i = 0; i < numReplies; i++) {
+                const contact = contacts[Math.floor(Math.random() * contacts.length)];
+                const targetMoment = moments[0]; // 最新发布的那条
+                
+                if (targetMoment.type === 'user') {
+                    await generateAIComment(contact, targetMoment, 0);
+                }
+            }
+            
+            renderMoments();
+        }
+        
+        async function generateAIComment(contact, moment, momentIndex) {
+            const savedSettings = localStorage.getItem('appSettings');
+            if (!savedSettings) return;
+            
+            const settings = JSON.parse(savedSettings);
+            if (!settings.apiKey) return;
+            
+            const apiKey = settings.apiKey;
+            let apiUrl = settings.apiUrl || 'https://api.openai.com/v1/chat/completions';
+            if (!apiUrl.endsWith('/chat/completions')) {
+                apiUrl = apiUrl + '/chat/completions';
+            }
+            const model = settings.apiModel || 'gpt-3.5-turbo';
+            
+            let worldbookContent = '';
+            if (contact.worldbooks && contact.worldbooks.length > 0) {
+                const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+                worldbookContent = contact.worldbooks.map(idx => worldbooks[idx]?.content).filter(Boolean).join('\n');
+            }
+            
+            let prompt = `你是一个名为"${contact.nickname}"的人`;
+            if (contact.bio) prompt += `，${contact.bio}`;
+            if (worldbookContent) prompt += `\n${worldbookContent}`;
+            prompt += `\n\n你在微信朋友圈看到好友"${moment.name}"发布了动态：${moment.content}`;
+            prompt += `\n\n请根据你的性格决定是否回复这条动态。`;
+            prompt += `\n\n你必须严格按以下JSON格式输出，不要输出其他任何文字：`;
+            prompt += `\n{"action": "reply", "content": "你的评论内容"}`;
+            prompt += `\n或者：`;
+            prompt += `\n{"action": "read", "reason": "简单说明为什么不回复（已读未回）"}`;
+            prompt += `\n\n只输出JSON，不要有任何其他文字。`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: prompt },
+                            { role: 'user', content: '请决定是否回复这条朋友圈动态' }
+                        ],
+                        temperature: 0.8
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const aiResponse = data.choices[0].message.content.trim();
+                    
+                    let result;
+                    try {
+                        result = JSON.parse(aiResponse);
+                    } catch (e) {
+                        console.error('JSON解析失败:', aiResponse);
+                        return;
+                    }
+                    
+                    const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+                    if (moments[momentIndex]) {
+                        if (!moments[momentIndex].likes) moments[momentIndex].likes = [];
+                        if (!moments[momentIndex].comments) moments[momentIndex].comments = [];
+                        
+                        if (result.action === 'reply') {
+                            if (!moments[momentIndex].likes.includes(contact.nickname)) {
+                                moments[momentIndex].likes.push(contact.nickname);
+                            }
+                            moments[momentIndex].comments.push({ 
+                                name: contact.nickname, 
+                                content: result.content,
+                                isReply: false
+                            });
+                        } else if (result.action === 'read') {
+                            // 已读未回不显示在评论区，用Toast提示
+                            showToast(`${contact.nickname}偷偷看了你的动态但没评论`, 2000);
+                        }
+                        
+                        localStorage.setItem('moments', JSON.stringify(moments));
+                    }
+                }
+            } catch (e) {
+                console.error('AI评论失败:', e);
+            }
+        }
+        
+        function showToast(message, duration) {
+            const existing = document.getElementById('custom-toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.id = 'custom-toast';
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.8);
+                color: #fff;
+                padding: 12px 24px;
+                border-radius: 25px;
+                font-size: 14px;
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.3s;
+                text-align: center;
+                max-width: 80%;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.style.opacity = '1', 10);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+        
+        async function aiReplyToMomentsAfterChat(contact) {
+            const savedSettings = localStorage.getItem('appSettings');
+            if (!savedSettings) return;
+            
+            const settings = JSON.parse(savedSettings);
+            if (!settings.apiKey) return;
+            
+            const moments = JSON.parse(localStorage.getItem('moments') || '[]');
+            if (moments.length === 0) return;
+            
+            const userMoments = moments.filter(m => m.type === 'user');
+            if (userMoments.length === 0) return;
+            
+            const apiKey = settings.apiKey;
+            let apiUrl = settings.apiUrl || 'https://api.openai.com/v1/chat/completions';
+            if (!apiUrl.endsWith('/chat/completions')) {
+                apiUrl = apiUrl + '/chat/completions';
+            }
+            const model = settings.apiModel || 'gpt-3.5-turbo';
+            
+            let worldbookContent = '';
+            if (contact.worldbooks && contact.worldbooks.length > 0) {
+                const worldbooks = JSON.parse(localStorage.getItem('worldbooks') || '[]');
+                worldbookContent = contact.worldbooks.map(idx => worldbooks[idx]?.content).filter(Boolean).join('\n');
+            }
+            
+            const latestMoment = userMoments[0];
+            
+            let prompt = `你是一个名为"${contact.nickname}"的人`;
+            if (contact.bio) prompt += `，${contact.bio}`;
+            if (worldbookContent) prompt += `\n${worldbookContent}`;
+            prompt += `\n\n刚刚你和好友"${latestMoment.name}"聊完天，你想了一下，决定是否要去回复Ta之前发的朋友圈动态。`;
+            prompt += `\n\n好友${latestMoment.name}的朋友圈内容是：${latestMoment.content}`;
+            prompt += `\n\n请根据你现在的想法和心情，决定是否要去回复这条朋友圈。可以回复，也可以不回复。`;
+            prompt += `\n\n你必须严格按以下JSON格式输出，不要输出其他任何文字：`;
+            prompt += `\n{"action": "reply", "content": "你的评论内容"}`;
+            prompt += `\n或者：`;
+            prompt += `\n{"action": "no", "reason": "简单说明为什么不回复"}`;
+            prompt += `\n\n只输出JSON，不要有任何其他文字。`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: prompt },
+                            { role: 'user', content: '请决定是否要去回复朋友圈' }
+                        ],
+                        temperature: 0.8
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const aiResponse = data.choices[0].message.content.trim();
+                    
+                    let result;
+                    try {
+                        result = JSON.parse(aiResponse);
+                    } catch (e) {
+                        console.error('JSON解析失败:', aiResponse);
+                        return;
+                    }
+                    
+                    const allMoments = JSON.parse(localStorage.getItem('moments') || '[]');
+                    const momentIndex = allMoments.findIndex(m => m.time === latestMoment.time && m.content === latestMoment.content);
+                    
+                    if (momentIndex !== -1 && result.action === 'reply') {
+                        if (!allMoments[momentIndex].likes) allMoments[momentIndex].likes = [];
+                        if (!allMoments[momentIndex].comments) allMoments[momentIndex].comments = [];
+                        
+                        if (!allMoments[momentIndex].likes.includes(contact.nickname)) {
+                            allMoments[momentIndex].likes.push(contact.nickname);
+                        }
+                        allMoments[momentIndex].comments.push({
+                            name: contact.nickname,
+                            content: result.content,
+                            isReply: false
+                        });
+                        
+                        localStorage.setItem('moments', JSON.stringify(allMoments));
+                        renderMoments();
+                        
+                        showToast(`${contact.nickname}去回复了你的朋友圈`, 2000);
+                    }
+                }
+            } catch (e) {
+                console.error('AI回复朋友圈失败:', e);
             }
         }
         
@@ -3224,12 +4550,6 @@
             }
         }
         
-        // 回车发送消息
-        document.getElementById('chat-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
     </script>
 </body>
 </html>
